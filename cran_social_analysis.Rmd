@@ -1,6 +1,8 @@
 ---
 title: "CRAN Social Network"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 ## Sobre
@@ -120,5 +122,64 @@ g <- g %>%
 ggraph(g, layout = 'lgl') +
   geom_edge_fan(alpha = 0.1) +
   theme_graph()
+```
+
+Agora é possível ver algumas estruturas (closures) e algumas ligações entre elas (brokerage). Vamos ver se é possível identificar os autores dentro delas
+
+```{r clusters, cache=T}
+g <- mutate(g, Community = group_edge_betweenness(),
+            Degree = centrality_degree())
+ 
+filter(g, Community == names(sort(table(Community), decr = TRUE))[1]) %>%
+  select(Name, Package) %>%
+  arrange(desc(Package)) %>%
+  top_n(10, Package) %>%
+  as_tibble() %>%
+  knitr::kable(format = "html", caption = "Cluster 1")
+
+filter(g, Community == names(sort(table(Community), decr = TRUE))[2]) %>%
+  select(Name, Package) %>%
+  arrange(desc(Package)) %>%
+  top_n(10, Package) %>%
+  as_tibble() %>%
+  knitr::kable(format = "html", caption = "Cluster 2")
+```
+
+Os autores dos dois grupos se destacam, alguns do primeiro mantém o RBase e outros pacotes de infraestrutura tadicional, os do cluster 2, mantém pacotes mais novos, como o dplyr, xgboost, etc.
+
+Vamos colorir os clusters
+
+```{r graph_color}
+g <- g %>%
+  mutate(Community = case_when(Community == names(sort(table(Community),
+                                                       decr = TRUE))[1] ~ "The Ancients",
+                               Community == names(sort(table(Community),
+                                                       decr = TRUE))[2] ~ "The Moderns",
+                               Community %in% names(sort(table(Community),
+                                                       decr = TRUE))[-1:-2] ~ "Unclassified")) %>%
+  mutate(Community = factor(Community))
+ 
+g <- g %>%
+  filter(Degree > 5) %>%
+  mutate(Degree = centrality_degree())
+ 
+ggraph(g, layout = 'lgl') +
+  geom_edge_fan(alpha = 0.1) +
+  geom_node_point(aes(color = Community, size = Package)) +
+  theme_graph() +
+  scale_color_manual(breaks = c("The Ancients", "The Moderns"),
+                     values=c("#F8766D", "#00BFC4", "#969696"))
+```
+
+Contando os pacotes que conectam autores de comunidades distintas
+
+```{r edge_count, cache=T}
+g %>% activate("edges") %>%
+  mutate(Community_from = .N()$Community[from],
+         Community_to = .N()$Community[to]) %>%
+  filter((Community_from == "The Ancients" & Community_to == "The Moderns")|
+           Community_from == "The Moderns" & Community_to == "The Ancients") %>%
+  as_tibble() %>%
+  nrow()
 ```
 
