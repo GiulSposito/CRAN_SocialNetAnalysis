@@ -1,0 +1,124 @@
+---
+title: "CRAN Social Network"
+output: html_notebook
+---
+
+## Sobre
+
+A idéia aqui é mapear e construir uma rede social dos colaboradores/desenvolvedores de pacotes no [CRAN](cran.r-project.org) e visualizar a relação entre esse desenvolvedores através de um grafo (*graph*).
+
+No grafo, cada colaborador será um vértice, haverá uma ligação entre eles se eles colaboram em um mesmo pacote.
+
+```{r setup, cache=TRUE}
+# pacotes usados
+library(tidyverse) # manipulacao de dados via dplyr, tibbles, magrittr, etc..,
+library(stringr)   # manipulacao de strings
+library(igraph)    # manipulacao de grafos
+library(tidygraph) # visualizacoes de redes
+library(ggraph)    # visualizacoes de redes
+```
+
+Vamos puxar os dados do CRAN através da _tools::CRAN_package_db()_ presente no R3.4+.
+
+```{r load, cache=TRUE}
+# dados de publicacao de pacotes
+pdb <- tools::CRAN_package_db()
+
+# vamos obter os autors
+pbaut <- pdb$Author
+```
+
+Mas o texto dos registros de autores é bem bagunçado, contendo vários autores em uma única string, é necessário fazer uma limpeza. 
+
+```{r}
+# exemplo de um registro
+pbaut[4]
+```
+
+
+```{r authors_clean, cache=TRUE}
+# manipula o vetor de autores para limpar e transformar numa lista "pacote -> [autores]"
+aut <- pbaut %>%
+  str_replace_all("\\(([^)]+)\\)", "") %>% # remocao 
+  str_replace_all("\\[([^]]+)\\]", "") %>% # remocao
+  str_replace_all("<([^>]+)>", "") %>% # remocao
+  str_replace_all("\n", " ") %>% # remocao
+  str_replace_all("[Cc]ontribution.* from|[Cc]ontribution.* by|[Cc]ontributors", " ") %>%
+  str_replace_all("\\(|\\)|\\[|\\]", " ") %>% # remocao
+  iconv(to = "ASCII//TRANSLIT") %>% # limpeza dos caracters especiais
+  str_replace_all("'$|^'", "") %>%  # limpeza
+  gsub("([A-Z])([A-Z]{1,})", "\\1\\L\\2", ., perl = TRUE) %>% 
+  gsub("\\b([A-Z]{1}) \\b", "\\1\\. ", .) %>%
+  map(str_split, ",|;|&| \\. |--|(?<=[a-z])\\.| [Aa]nd | [Ww]ith | [Bb]y ", simplify = TRUE) %>% 
+  map(str_replace_all, "[[:space:]]+", " ") %>% 
+  map(str_replace_all, " $|^ | \\.", "") %>% 
+  map(function(x) x[str_length(x) != 0]) %>%
+  set_names(pdb$Package) %>% 
+  magrittr::extract(map_lgl(., function(x) length(x) > 1))
+
+# conta autores por pacote
+aut_list <- aut %>%
+  unlist() %>%
+  dplyr::as_data_frame() %>%
+  count(value) %>%
+  rename(Name = value, Package = n)
+```
+
+Para gerar o grafo via igraph, temos que montar uma _edge list_, uma matrix de duas colunas "conectando" as arestas.
+
+```{r edge_list, cache=TRUE}
+# transforma a lista "pacote" -> [autores] em uma edge list
+edge_list <- aut %>%
+  map(combn, m = 2) %>%    # em cada pacote (map) gera uma combinacao do array de autores dois a dois
+  do.call("cbind", .) %>%  
+  t() %>%
+  dplyr::as_data_frame() %>%
+  arrange(V1, V2) %>%
+  count(V1, V2) 
+
+g <- edge_list %>%
+  select(V1, V2) %>%
+  as.matrix() %>%
+  graph.edgelist(directed = FALSE) %>%
+  as_tbl_graph() %>%  # wrapper tidygraph para o objeto igraph
+  activate("edges") %>% # tbl graph é duas linked table (edge e nodes) activate diz o que sera manipulado
+  mutate(Weight = edge_list$n) %>% # adiciona o peso nas arestas de acordo com o numero de vezes que os autores colabora
+  activate("nodes") %>%    # manipulara os nos agora
+  rename(Name = name) %>% # nomeia os nos conforme
+  mutate(Component = group_components()) %>%
+  filter(Component == names(table(Component))[which.max(table(Component))])
+```
+
+Usando o ggraph para visulizar o graph como um tbl_graph()
+
+```{r ggraph}
+ggraph(g, layout="lgl") +
+  geom_edge_fan(alpha=0.1)+
+  theme_graph()
+```
+
+Vamos ranquear os autores por contribuicao mais amplas (nodes que contribuem com nós que contribuem com mais nós).
+
+```{r top_authors, cache=TRUE}
+g %>%
+  mutate(Page_rank = centrality_pagerank()) %>%
+  top_n(10, Page_rank) %>%
+  as_tibble() %>%
+  ggplot() +
+    geom_col(aes(forcats::fct_reorder(Name, Page_rank), Page_rank)) +
+    coord_flip() + theme_minimal() +
+    labs(title = "Top 10 contributors based on Page Rank", x = "")
+```
+
+```{r pagerank, cache=TRUE}
+g <- g %>%
+  left_join(aut_list, by="Name") %>%
+  filter(Package > 5) %>% # pelo menos 4 pacotes
+  mutate(Component = group_components()) %>%
+  filter(Component == names(table(Component))[which.max(table(Component))])
+ 
+ggraph(g, layout = 'lgl') +
+  geom_edge_fan(alpha = 0.1) +
+  theme_graph()
+```
+
