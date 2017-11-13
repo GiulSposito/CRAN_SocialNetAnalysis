@@ -1,3 +1,11 @@
-## ABOUT
+# Sobre
+
+Repositório de análises de redes sociais em R, usando igraph, tidyverse, tidygraph e outros.
+
+## CRAN Packages
 
 Reprodução da [análise de rede sociais](http://www.pieceofk.fr/?p=431) feita pelo [Francois Keck](https://twitter.com/FrancoisKeck/) em seu blog [Piece of K](http://www.pieceofk.fr/).
+
+## Patent Citation
+
+Artigo original analisando a rede de sitações de patentes na área de machine learning.
