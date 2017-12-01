@@ -7,6 +7,7 @@ needs(ggraph)    # visualizacoes de redes
 
 pdb <- tools::CRAN_package_db()
 saveRDS(pdb,"./CT050/pdb.rds")
+pdb <- readRDS("./CT050/pdb.rds")
 
 pbaut <- pdb$Author
 
@@ -56,6 +57,68 @@ g <- edge_list %>%
   mutate(Component = group_components()) %>%
   filter(Component == names(table(Component))[which.max(table(Component))])
 
-ggraph(g, layout="lgl") +
-  geom_edge_fan(alpha=0.1)+
+# ggraph(g, layout="lgl") +
+#   geom_edge_fan(alpha=0.1)+
+#   theme_graph()
+
+
+g <- g %>%
+  left_join(aut_list, by="Name") %>%
+  filter(Package > 5) %>% # pelo menos 4 pacotes
+  mutate(Component = group_components()) %>%
+  filter(Component == names(table(Component))[which.max(table(Component))])
+
+ggraph(g, layout = 'lgl') +
+  geom_edge_fan(alpha = 0.1) +
   theme_graph()
+
+
+g <- mutate(g, Community = group_edge_betweenness(),
+            Degree = centrality_degree())
+
+filter(g, Community == names(sort(table(Community), decr = TRUE))[1]) %>%
+  select(Name, Package) %>%
+  arrange(desc(Package)) %>%
+  top_n(10, Package) %>%
+  as_tibble() %>%
+  knitr::kable(format = "html", caption = "Cluster 1")
+
+filter(g, Community == names(sort(table(Community), decr = TRUE))[2]) %>%
+  select(Name, Package) %>%
+  arrange(desc(Package)) %>%
+  top_n(10, Package) %>%
+  as_tibble() %>%
+  knitr::kable(format = "html", caption = "Cluster 2")
+
+filter(g, Community == names(sort(table(Community), decr = TRUE))[3]) %>%
+  select(Name, Package) %>%
+  arrange(desc(Package)) %>%
+  top_n(10, Package) %>%
+  as_tibble() %>%
+  knitr::kable(format = "html", caption = "Cluster 2")
+
+g <- g %>%
+  mutate(Community = case_when(Community == names(sort(table(Community),
+                                                       decr = TRUE))[1] ~ "The Ancients",
+                               Community == names(sort(table(Community),
+                                                       decr = TRUE))[2] ~ "The Moderns",
+                               Community == names(sort(table(Community),
+                                                       decr = TRUE))[3] ~ "Suicide Squad",
+                               Community == names(sort(table(Community),
+                                                       decr = TRUE))[4] ~ "The Immortals",
+                               Community %in% names(sort(table(Community),
+                                                         decr = TRUE))[-1:-4] ~ "Unclassified")) %>%
+  mutate(Community = factor(Community))
+
+
+g <- g %>%
+  filter(Degree > 5) %>%
+  mutate(Degree = centrality_degree())
+
+
+ggraph(g, layout = 'lgl') +
+  geom_edge_fan(alpha = 0.1) +
+  geom_node_point(aes(color = Community, size = Package)) +
+  theme_graph() +
+  scale_color_manual(breaks = c("The Ancients", "The Moderns", "Suicide Squad", "The Immortals"),
+                     values=c("#F8766D", "#00BFC4", "#969696", "#FF0000", "#00FF00"))

@@ -1,0 +1,183 @@
+# Basic Concepts
+
+```{r}
+library(needs)
+needs(stringr)
+needs(tidyverse)
+needs(igraph)    # manipulacao de grafos
+needs(tidygraph) # visualizacoes de redes
+needs(ggraph)    # visualizacoes de redes
+
+windowsFonts(Arial=windowsFont("TT Arial")) 
+```
+
+## Network: how to represent varios social networks
+ - directed / not directd
+ - ego / whole
+
+## Tie Strengh: how to identify strong/weak ties in the network
+ - weights to edges: ferquency of interaction, number of items exchanged in period, individual perceptions, costs in communication, combinations of these.
+ 
+* homophily: is the tendency to relate to people with similar characteristics
+* Transitivity: is a property of ties (weak ties)
+* Bridges are nodes and edges that connect across groups
+
+## Key players: how to identify key/central nodes in the network
+
+# *Degree centrality:* 
+* Is the number of links that lead into or out of the node.
+* often used as measure of a node's degree of connectedness and hance also influence and/or popularity
+* Useful in assessing which nodes are central with respect to spreading information and influencing others in ther immediate 'neighborhood'
+
+```{r}
+g_edgelist <- data.frame(
+  from = c( 1,1,2,2,3,3,5,5),
+  to   = c( 2,3,3,5,4,5,6,7)
+) 
+
+g <- g_edgelist %>%
+  as.matrix() %>%
+  graph.edgelist(directed = FALSE) %>%
+  as_tbl_graph()
+
+g <- g %>% activate("nodes") %>%
+  mutate( name = 1:7, 
+          degree = as.factor(centrality_degree()) )
+
+ggraph(g, layout="auto") +
+  geom_edge_fan(alpha=0.4) +
+  geom_node_point(aes(color = degree, size = 1)) + 
+  geom_node_label(aes(label=name, color=degree)) +
+  theme_graph()
+
+
+```
+
+```{r}
+
+
+ggraph(g, layout="auto") +
+  geom_edge_fan(alpha=0.4) +
+  geom_node_point(aes(color = degree, size = 1)) + 
+  geom_node_label(aes(label=degree, color=degree)) +
+  theme_graph()
+
+
+```
+
+
+Paths and Shortest Paths (or _Distance_)
+
+* *Betweeness centrality* For a given node v, calculate the number of shortest paths between nodes i and j that pass through v, and divide by all shortest paths between i and j
+
+* Sum the above values for all node pairs i,j
+
+* Sometimes normalized such that the highest value is 1 or the sum of all betweenness centralities is the network is 1
+
+* Show which nodes are more likely to be in communications paths between other nodes
+
+```{r}
+
+g <- g %>% mutate( btwn = centrality_betweenness() )
+
+ggraph(g, layout="auto") +
+  geom_edge_fan(alpha=0.4) +
+  geom_node_point(aes(color = btwn, size = 1)) + 
+  geom_node_label(aes(label=btwn, color=btwn)) +
+  theme_graph()
+
+```
+
+# *Closeness centrality*
+
+* Calculate the mean length of all shortest paths from a node to all other nodes in the network.
+* Take the reciprocal of the above value so that higher are 'better' (indicate higher closeness) like in other measures of centrality
+* It is a measure of _reach_, the speed with information can reach other nodes from a given starting node
+
+```{r}
+
+g <- g %>% mutate( clsn = round(centrality_closeness(normalized = T),3) )
+
+ggraph(g, layout="auto") +
+  geom_edge_fan(alpha=0.4) +
+  geom_node_point(aes(color = clsn, size = 1)) + 
+  geom_node_label(aes(label=clsn, color=clsn)) +
+  theme_graph()
+//
+
+```
+
+# *eigenvector centrality*
+
+* A node's eigenvector centrality is proportional to the sum of the eigenvector centralities of all nodes directly connected to it.
+* Useful to determine who is connected to the most connected
+
+```{r}
+g <- g %>% mutate( eign =round(centrality_eigen(scale = F), 2) )
+
+ggraph(g, layout="auto") +
+  geom_edge_fan(alpha=0.4) +
+  geom_node_point(aes(color = eign, size = 1)) + 
+  geom_node_label(aes(label=eign, color=eign)) +
+  theme_graph()
+
+
+```
+
+```{r}
+
+g %>% as_tibble() %>% 
+  ggplot(aes(x=btwn, y=eign)) + 
+  geom_point() + geom_label(aes(label=name))
+
+
+```
+
+# Centrality Interpretations
+
+* *Degree*: How many people can this person reach directly? In network of music collaboratinos, how many people has this person collaborated with?
+
+* *Betweenness*: How likely is this person to be the most direct route between two people in the network? In network of spies, who is the spy though whom most of the confidenctial information is likely to flow?
+
+* *Closeness*: How fast can this person reach everyone in the network? In network of sexual relations: how fast will an STD spread from this person to the rest of the network?
+
+* *Eigenvector*: How well is this person connected to other well-connected people? In network of paper citations, who is the author that is most cited by other well-cited authors?
+
+# Identifying sets of key players
+
+```{r}
+
+h_edgelist <- data.frame(
+  from = c( 0,  1, 1,  2, 2, 3, 3,  3,  4, 5, 5, 5, 8),
+  to   = c(10, 10, 2, 10, 3, 4, 5, 10, 10, 6, 7, 8, 9)
+) + 1
+
+h <- h_edgelist %>%
+  as.matrix() %>%
+  graph.edgelist(directed = FALSE) %>%
+  as_tbl_graph() %>%
+  activate("nodes") %>%
+  mutate( name = 0:10,
+          degree = centrality_degree(),
+          btwn = centrality_betweenness(),
+          clsn = centrality_closeness(normalized = T),
+          eign = centrality_eigen(scale = T)) %>%
+  activate("edges") %>%
+  mutate( ebtwn = centrality_edge_betweenness() )
+
+h          
+          
+as_tibble(h)
+
+ggraph(h, layout="auto") +
+  geom_edge_fan(aes(alpha=0.4, edge_colour = ebtwn)) +
+  geom_node_point(aes(color = btwn, size = degree)) + 
+  geom_node_text(aes(label=name)) +
+  theme_graph()
+  
+  
+```
+
+
+Cohesion: measures of overal network structure
+
