@@ -1,0 +1,72 @@
+---
+title: "SNA CRAN TEST"
+output: html_notebook
+---
+
+```{r setup}
+library(needs)
+
+needs(stringr)
+needs(tidyverse)
+needs(igraph)    # manipulacao de grafos
+needs(tidygraph) # visualizacoes de redes
+needs(ggraph)    # visualizacoes de redes
+
+pdb <- readRDS("pdb.rds")
+pbaut <- pdb$Author
+
+aut <- pbaut %>%
+  str_replace_all("\\(([^)]+)\\)", "") %>% # remocao 
+  str_replace_all("\\[([^]]+)\\]", "") %>% # remocao
+  str_replace_all("<([^>]+)>", "") %>% # remocao
+  str_replace_all("\n", " ") %>% # remocao
+  str_replace_all("[Cc]ontribution.* from|[Cc]ontribution.* by|[Cc]ontributors", " ") %>%
+  str_replace_all("\\(|\\)|\\[|\\]", " ") %>% # remocao
+  iconv(to = "ASCII//TRANSLIT") %>% # limpeza dos caracters especiais
+  str_replace_all("'$|^'", "") %>%  # limpeza
+  gsub("([A-Z])([A-Z]{1,})", "\\1\\L\\2", ., perl = TRUE) %>% 
+  gsub("\\b([A-Z]{1}) \\b", "\\1\\. ", .) %>%
+  map(str_split, ",|;|&| \\. |--|(?<=[a-z])\\.| [Aa]nd | [Ww]ith | [Bb]y ", simplify = TRUE) %>% 
+  map(str_replace_all, "[[:space:]]+", " ") %>% 
+  map(str_replace_all, " $|^ | \\.", "") %>% 
+  map(function(x) x[str_length(x) != 0]) %>%
+  set_names(pdb$Package) %>% 
+  magrittr::extract(map_lgl(., function(x) length(x) > 1))
+
+# conta autores por pacote
+aut_list <- aut %>%
+  unlist() %>%
+  dplyr::as_data_frame() %>%
+  count(value) %>%
+  rename(Name = value, Package = n)
+
+edge_list <- aut %>%
+  map(combn, m = 2) %>%    # em cada pacote (map) gera uma combinacao do array de autores dois a dois
+  do.call("cbind", .) %>%  
+  t() %>%
+  dplyr::as_data_frame() %>%
+  arrange(V1, V2) %>%
+  count(V1, V2) 
+
+g <- edge_list %>%
+  select(V1, V2) %>%
+  as.matrix() %>%
+  graph.edgelist(directed = FALSE) %>%
+  as_tbl_graph() %>%  # wrapper tidygraph para o objeto igraph
+  activate("edges") %>% # tbl graph é duas linked table (edge e nodes) activate diz o que sera manipulado
+  mutate(Weight = edge_list$n) %>% # adiciona o peso nas arestas de acordo com o numero de vezes que os autores colabora
+  activate("nodes") %>%    # manipulara os nos agora
+  rename(Name = name) %>% # nomeia os nos conforme
+  mutate(Component = group_components()) %>%
+  filter(Component == names(table(Component))[which.max(table(Component))])
+
+# ggraph(g, layout="lgl") +
+#   geom_edge_fan(alpha=0.1)+
+#   theme_graph()
+
+
+
+```
+
+
+
