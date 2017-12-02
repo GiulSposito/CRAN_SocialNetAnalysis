@@ -1,6 +1,7 @@
 ---
 title: "SNA KEY CONCEPTS"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
@@ -29,8 +30,8 @@ needs(ggraph)    # visualizacoes de redes
 
 ```{r components}
 edgelist <- data.frame(
-  from = c(1,1,2,2,3,3,4,4,6,6,7,7,8,8,9,9),
-  to   = c(2,3,4,5,4,4,5,5,7,8,9,8,9,10,10,10)
+  from = c(1,1,2,4,2,3,4,5,6,6,7,7,8,8,9,10),
+  to   = c(2,3,4,3,5,4,5,1,7,8,9,8,9,10,10,7)
 )
 
 edgelist %>%
@@ -38,12 +39,13 @@ edgelist %>%
   graph.edgelist(directed = T) %>%
   as_tbl_graph() %>%
   activate("nodes") %>%
-  mutate( name = 1:10,
+  mutate( name = LETTERS[1:10],
           component = as.factor(group_components())) -> g
 
+
 ggraph(g, layout="auto") +
-  geom_edge_fan(alpha=0.1, arrow = arrow(type="closed", angle=10, length = unit(5,units = "mm") ))+
-  geom_node_point(aes(color=component),alpha=0.8, size=10) +
+  geom_edge_fan(alpha=0.2, arrow = arrow(type="closed", angle=10, length = unit(5,units = "mm") ))+
+  geom_node_point(aes(color=component),alpha=0.8, size=8) +
   geom_node_text(aes(label=name), color="white") +
   theme_void() +
   ggtitle( "Components" ) + 
@@ -75,19 +77,27 @@ g <- g_edgelist %>%
   as_tbl_graph()
 
 g <- g %>% activate("nodes") %>%
-  mutate( name = 1:7 ) %>% 
-  mutate( degree = as.factor(centrality_degree()) )
+  mutate( name = LETTERS[1:7] )
+
+g
+```
+
+```{r measures}
+g <- g %>% 
+  mutate( degree = centrality_degree(),
+          btwn = round(centrality_betweenness(),2),
+          clsn = round(centrality_closeness(normalized = T),2),
+          eign =round(centrality_eigen(scale = F), 2) )
 
 g_layout <- ggraph::create_layout(g, layout="auto")
 
 ggraph(g_layout) +
-  geom_edge_fan(alpha=0.4) +
-  geom_node_label(aes(label= name, color="orange")) +
+  geom_edge_fan(alpha=0.3) +
+  geom_node_point(color="blue",alpha=0.8, size=8) +
+  geom_node_text(aes(label=name), color="white") +
   theme_void() +
   ggtitle( "Network" ) + 
   theme( legend.position = "none" )
-
-
 ```
 
 
@@ -99,15 +109,14 @@ ggraph(g_layout) +
 
 ```{r degree}
 
-
 ggraph(g_layout) +
   geom_edge_fan(alpha=0.4) +
-  geom_node_point(aes(color = degree, size = 1)) + 
-  geom_node_label(aes(label=degree, color=degree)) +
+  geom_node_point(aes(color = degree), size=8) + 
+  geom_node_text(aes(label=name),color="white") +
+  geom_node_text(aes(label=degree, color=degree), nudge_y = 0.3 ) +
   theme_graph() +
   ggtitle( "Degree" ) + 
   theme( legend.position = "none" )
-
 
 ```
 
@@ -124,12 +133,11 @@ Paths and Shortest Paths (or _Distance_)
 
 ```{r betweeness}
 
-g <- g %>% mutate( btwn = centrality_betweenness() )
-
-ggraph(g, layout="auto") +
+ggraph(g_layout) +
   geom_edge_fan(alpha=0.4) +
-  geom_node_point(aes(color = btwn, size = 1)) + 
-  geom_node_label(aes(label=btwn, color=btwn)) +
+  geom_node_point(aes(color = btwn), size=8) + 
+  geom_node_text(aes(label=name),color="white") +
+  geom_node_text(aes(label=btwn, color=btwn), nudge_y = 0.3 ) +
   theme_graph() +
   ggtitle( "Betweenness Centrality" ) + 
   theme( legend.position = "none" )
@@ -144,16 +152,14 @@ ggraph(g, layout="auto") +
 
 ```{r closeness}
 
-g <- g %>% mutate( clsn = round(centrality_closeness(normalized = T),3) )
-
-ggraph(g, layout="auto") +
+ggraph(g_layout) +
   geom_edge_fan(alpha=0.4) +
-  geom_node_point(aes(color = clsn, size = 1)) + 
-  geom_node_label(aes(label=clsn, color=clsn)) +
+  geom_node_point(aes(color = clsn), size=8) + 
+  geom_node_text(aes(label=name),color="white") +
+  geom_node_text(aes(label=clsn, color=clsn), nudge_y = 0.3 ) +
   theme_graph() +
   ggtitle( "Closeness" ) + 
   theme( legend.position = "none" )
-
 
 ```
 
@@ -163,27 +169,18 @@ ggraph(g, layout="auto") +
 * Useful to determine who is connected to the most connected
 
 ```{r eigenvector}
-g <- g %>% mutate( eign =round(centrality_eigen(scale = F), 2) )
 
-ggraph(g, layout="auto") +
+ggraph(g_layout) +
   geom_edge_fan(alpha=0.4) +
-  geom_node_point(aes(color = eign, size = 1)) + 
-  geom_node_label(aes(label=eign, color=eign)) +
+  geom_node_point(aes(color = eign), size=8) + 
+  geom_node_text(aes(label=name),color="white") +
+  geom_node_text(aes(label=eign, color=eign), nudge_y = 0.3 ) +
   theme_graph() +
   ggtitle( "Eigenvector" ) + 
   theme( legend.position = "none" )
 
-
 ```
 
-```{r}
-
-g %>% as_tibble() %>% 
-  ggplot(aes(x=btwn, y=eign)) + 
-  geom_point() + geom_label(aes(label=name))
-
-
-```
 
 # Centrality Interpretations
 
@@ -197,7 +194,12 @@ g %>% as_tibble() %>%
 
 # Identifying sets of key players in a network
 
-```{r}
+One method is to plot eigenvector centrality on betweenness and examine the residuals
+
+* An actor with high betweenness and low eigenvector centrality may be an importante gatekeeper to a central actor
+* An actor with low betweenness and high eigenvector centrality may have unique access to central actors
+
+```{r kpnet}
 
 h_edgelist <- data.frame(
   from = c( 0,  1, 1,  2, 2, 3, 3,  3,  4, 5, 5, 5, 8),
@@ -209,23 +211,55 @@ h <- h_edgelist %>%
   graph.edgelist(directed = FALSE) %>%
   as_tbl_graph() %>%
   activate("nodes") %>%
-  mutate( name = 0:10,
-          degree = centrality_degree(),
+  mutate( name = LETTERS[1:11],
+          degree = as.factor(centrality_degree()),
           btwn = centrality_betweenness(),
           clsn = centrality_closeness(normalized = T),
           eign = centrality_eigen(scale = T)) %>%
   activate("edges") %>%
   mutate( ebtwn = centrality_edge_betweenness() )
+```
 
+```{r plotnet}
+ggraph(h, layout="auto") +
+  geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn, label=ebtwn), label_size=3) +
+  geom_node_point(aes(color=degree),alpha=0.9, size=8) +
+  geom_node_text(aes(label=name), color="white") +
+  theme_void() +
+  ggtitle( "Components" ) + 
+  scale_color_manual(breaks = c("1", "2","3", "5", "10"),
+                     values=c("red","red","lightskyblue","lightskyblue","darkblue"))
+
+
+
+```
+
+```{r nodetables}
+
+nodes <- h %>%
+  activate("nodes") %>%
+  as.tibble() 
+
+
+
+```
+
+
+
+```{r keysplayer}
 h %>% activate("nodes") %>% as_tibble() %>% 
   ggplot(aes(x=btwn, y=eign)) + 
   geom_point() + geom_label(aes(label=name))
+```
 
+```{r}
 ggraph(h, layout="auto") +
   geom_edge_fan(aes(alpha=0.4, edge_colour = ebtwn)) +
   geom_node_point(aes(color = btwn, size = degree)) + 
   geom_node_text(aes(label=name)) +
-  theme_graph()
+  theme_graph() +
+  ggtitle( "Eigenvector" ) + 
+  theme( legend.position = "none" )
   
   
 ```
