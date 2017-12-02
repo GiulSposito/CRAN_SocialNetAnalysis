@@ -213,9 +213,9 @@ h <- h_edgelist %>%
   activate("nodes") %>%
   mutate( name = LETTERS[1:11],
           degree = as.factor(centrality_degree()),
-          btwn = centrality_betweenness(),
-          clsn = centrality_closeness(normalized = T),
-          eign = centrality_eigen(scale = T)) %>%
+          btwn = round(centrality_betweenness(), 2),
+          clsn = round(centrality_closeness(normalized = T), 2),
+          eign = round(centrality_eigen(scale = T), 2)) %>%
   activate("edges") %>%
   mutate( ebtwn = centrality_edge_betweenness() )
 ```
@@ -226,7 +226,7 @@ ggraph(h, layout="auto") +
   geom_node_point(aes(color=degree),alpha=0.9, size=8) +
   geom_node_text(aes(label=name), color="white") +
   theme_void() +
-  ggtitle( "Components" ) + 
+  ggtitle( "Key Actors" ) + 
   scale_color_manual(breaks = c("1", "2","3", "5", "10"),
                      values=c("red","red","lightskyblue","lightskyblue","darkblue"))
 
@@ -240,26 +240,48 @@ nodes <- h %>%
   activate("nodes") %>%
   as.tibble() 
 
-
+library(knitr)
+kable(nodes)
 
 ```
 
+# Identifying sets of key players in a network
 
+One method is to plot eigenvector centrality on betweenness and examine the residuals
+
+* An actor with **high betweenness** and **low eigenvector** centrality may be an importante gatekeeper to a central actor
+* An actor with **low betweenness** and **high eigenvector** centrality may have unique access to central actors
 
 ```{r keysplayer}
 h %>% activate("nodes") %>% as_tibble() %>% 
   ggplot(aes(x=btwn, y=eign)) + 
-  geom_point() + geom_label(aes(label=name))
+  geom_point() + geom_label(aes(label=name)) +
+  theme( legend.position = "none" )
 ```
 
+gatekeepers: F
+access to central actors: C
+
 ```{r}
+
+h <- h %>% 
+  activate("nodes") %>%
+  mutate( type = as.factor(case_when(
+    name == "F" ~ "gatekeeper",
+    name == "C" ~ "access to central actors",
+    TRUE ~ "others"
+  )))
+  
+
 ggraph(h, layout="auto") +
-  geom_edge_fan(aes(alpha=0.4, edge_colour = ebtwn)) +
-  geom_node_point(aes(color = btwn, size = degree)) + 
-  geom_node_text(aes(label=name)) +
-  theme_graph() +
-  ggtitle( "Eigenvector" ) + 
-  theme( legend.position = "none" )
+  geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn), label_size=3, legend="none") +
+  geom_node_point(aes(color=type),alpha=0.9, size=8) +
+  geom_node_text(aes(label=name), color="white") +
+  geom_node_text(aes(label=eign), nudge_y = .38, size=3) +
+  theme_void() +
+  ggtitle( "Components" ) + 
+  scale_color_manual(breaks = c("others","gatekeeper","access to central actors"),
+                     values=c("red","lightskyblue","darkblue"))
   
   
 ```
