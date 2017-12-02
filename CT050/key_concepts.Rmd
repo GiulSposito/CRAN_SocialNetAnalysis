@@ -179,5 +179,12 @@ ggraph(h, layout="auto") +
 ```
 
 
-Cohesion: measures of overal network structure
+# Cohesion: measures of overal network structure
+
+```{r}
+tidygraph::n
+```
+
+
+
 
