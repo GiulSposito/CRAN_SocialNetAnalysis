@@ -1,19 +1,56 @@
-# Basic Concepts
+---
+title: "SNA KEY CONCEPTS"
+output:
+  html_document:
+    df_print: paged
+---
 
-```{r}
+```{r setup, include=FALSE}
+
+# default behavior of document chunks
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+# library setup
 library(needs)
 needs(stringr)
 needs(tidyverse)
 needs(igraph)    # manipulacao de grafos
 needs(tidygraph) # visualizacoes de redes
 needs(ggraph)    # visualizacoes de redes
-
-windowsFonts(Arial=windowsFont("TT Arial")) 
 ```
+
+# Basic Concepts
 
 ## Network: how to represent varios social networks
  - directed / not directd
  - ego / whole
+
+## Components
+
+```{r components}
+edgelist <- data.frame(
+  from = c(1,1,2,2,3,3,4,4,6,6,7,7,8,8,9,9),
+  to   = c(2,3,4,5,4,4,5,5,7,8,9,8,9,10,10,10)
+)
+
+edgelist %>%
+  as.matrix() %>%
+  graph.edgelist(directed = T) %>%
+  as_tbl_graph() %>%
+  activate("nodes") %>%
+  mutate( name = 1:10,
+          component = as.factor(group_components())) -> g
+
+ggraph(g, layout="auto") +
+  geom_edge_fan(alpha=0.1, arrow = arrow(type="closed", angle=10, length = unit(5,units = "mm") ))+
+  geom_node_point(aes(color=component),alpha=0.8, size=10) +
+  geom_node_text(aes(label=name), color="white") +
+  theme_void() +
+  ggtitle( "Components" ) + 
+  theme( legend.position = "none" )
+
+```
+
 
 ## Tie Strengh: how to identify strong/weak ties in the network
  - weights to edges: ferquency of interaction, number of items exchanged in period, individual perceptions, costs in communication, combinations of these.
@@ -24,12 +61,9 @@ windowsFonts(Arial=windowsFont("TT Arial"))
 
 ## Key players: how to identify key/central nodes in the network
 
-# *Degree centrality:* 
-* Is the number of links that lead into or out of the node.
-* often used as measure of a node's degree of connectedness and hance also influence and/or popularity
-* Useful in assessing which nodes are central with respect to spreading information and influencing others in ther immediate 'neighborhood'
+### Sample network
 
-```{r}
+```{r network}
 g_edgelist <- data.frame(
   from = c( 1,1,2,2,3,3,5,5),
   to   = c( 2,3,3,5,4,5,6,7)
@@ -41,26 +75,38 @@ g <- g_edgelist %>%
   as_tbl_graph()
 
 g <- g %>% activate("nodes") %>%
-  mutate( name = 1:7, 
-          degree = as.factor(centrality_degree()) )
+  mutate( name = 1:7 ) %>% 
+  mutate( degree = as.factor(centrality_degree()) )
 
-ggraph(g, layout="auto") +
+g_layout <- ggraph::create_layout(g, layout="auto")
+
+ggraph(g_layout) +
   geom_edge_fan(alpha=0.4) +
-  geom_node_point(aes(color = degree, size = 1)) + 
-  geom_node_label(aes(label=name, color=degree)) +
-  theme_graph()
+  geom_node_label(aes(label= name, color="orange")) +
+  theme_void() +
+  ggtitle( "Network" ) + 
+  theme( legend.position = "none" )
 
 
 ```
 
-```{r}
+
+# *Degree centrality:* 
+* Is the number of links that lead into or out of the node.
+* often used as measure of a node's degree of connectedness and hance also influence and/or popularity
+* Useful in assessing which nodes are central with respect to spreading information and influencing others in ther immediate 'neighborhood'
 
 
-ggraph(g, layout="auto") +
+```{r degree}
+
+
+ggraph(g_layout) +
   geom_edge_fan(alpha=0.4) +
   geom_node_point(aes(color = degree, size = 1)) + 
   geom_node_label(aes(label=degree, color=degree)) +
-  theme_graph()
+  theme_graph() +
+  ggtitle( "Degree" ) + 
+  theme( legend.position = "none" )
 
 
 ```
@@ -76,7 +122,7 @@ Paths and Shortest Paths (or _Distance_)
 
 * Show which nodes are more likely to be in communications paths between other nodes
 
-```{r}
+```{r betweeness}
 
 g <- g %>% mutate( btwn = centrality_betweenness() )
 
@@ -84,7 +130,9 @@ ggraph(g, layout="auto") +
   geom_edge_fan(alpha=0.4) +
   geom_node_point(aes(color = btwn, size = 1)) + 
   geom_node_label(aes(label=btwn, color=btwn)) +
-  theme_graph()
+  theme_graph() +
+  ggtitle( "Betweenness Centrality" ) + 
+  theme( legend.position = "none" )
 
 ```
 
@@ -94,7 +142,7 @@ ggraph(g, layout="auto") +
 * Take the reciprocal of the above value so that higher are 'better' (indicate higher closeness) like in other measures of centrality
 * It is a measure of _reach_, the speed with information can reach other nodes from a given starting node
 
-```{r}
+```{r closeness}
 
 g <- g %>% mutate( clsn = round(centrality_closeness(normalized = T),3) )
 
@@ -102,8 +150,10 @@ ggraph(g, layout="auto") +
   geom_edge_fan(alpha=0.4) +
   geom_node_point(aes(color = clsn, size = 1)) + 
   geom_node_label(aes(label=clsn, color=clsn)) +
-  theme_graph()
-//
+  theme_graph() +
+  ggtitle( "Closeness" ) + 
+  theme( legend.position = "none" )
+
 
 ```
 
@@ -112,14 +162,16 @@ ggraph(g, layout="auto") +
 * A node's eigenvector centrality is proportional to the sum of the eigenvector centralities of all nodes directly connected to it.
 * Useful to determine who is connected to the most connected
 
-```{r}
+```{r eigenvector}
 g <- g %>% mutate( eign =round(centrality_eigen(scale = F), 2) )
 
 ggraph(g, layout="auto") +
   geom_edge_fan(alpha=0.4) +
   geom_node_point(aes(color = eign, size = 1)) + 
   geom_node_label(aes(label=eign, color=eign)) +
-  theme_graph()
+  theme_graph() +
+  ggtitle( "Eigenvector" ) + 
+  theme( legend.position = "none" )
 
 
 ```
@@ -143,7 +195,7 @@ g %>% as_tibble() %>%
 
 * *Eigenvector*: How well is this person connected to other well-connected people? In network of paper citations, who is the author that is most cited by other well-cited authors?
 
-# Identifying sets of key players
+# Identifying sets of key players in a network
 
 ```{r}
 
@@ -165,9 +217,9 @@ h <- h_edgelist %>%
   activate("edges") %>%
   mutate( ebtwn = centrality_edge_betweenness() )
 
-h          
-          
-as_tibble(h)
+h %>% activate("nodes") %>% as_tibble() %>% 
+  ggplot(aes(x=btwn, y=eign)) + 
+  geom_point() + geom_label(aes(label=name))
 
 ggraph(h, layout="auto") +
   geom_edge_fan(aes(alpha=0.4, edge_colour = ebtwn)) +
@@ -182,7 +234,7 @@ ggraph(h, layout="auto") +
 # Cohesion: measures of overal network structure
 
 ```{r}
-tidygraph::n
+
 ```
 
 

@@ -3,7 +3,9 @@ title: "SNA CRAN TEST"
 output: html_notebook
 ---
 
-```{r setup}
+## Importing and building network
+
+```{r setup, cache=TRUE}
 library(needs)
 
 needs(stringr)
@@ -54,19 +56,22 @@ g <- edge_list %>%
   graph.edgelist(directed = FALSE) %>%
   as_tbl_graph() %>%  # wrapper tidygraph para o objeto igraph
   activate("edges") %>% # tbl graph é duas linked table (edge e nodes) activate diz o que sera manipulado
-  mutate(Weight = edge_list$n) %>% # adiciona o peso nas arestas de acordo com o numero de vezes que os autores colabora
-  activate("nodes") %>%    # manipulara os nos agora
+  mutate(Weight = edge_list$n) %>% # adiciona o peso nas arestas de acordo com o numero de vezes que os autores colaboram
+  activate("nodes") %>%     # manipulara os nos agora
   rename(Name = name) %>% # nomeia os nos conforme
-  mutate(Component = group_components()) %>%
+  mutate(Component = group_components())
   filter(Component == names(table(Component))[which.max(table(Component))])
 
-# ggraph(g, layout="lgl") +
-#   geom_edge_fan(alpha=0.1)+
-#   theme_graph()
-
-
+g
 
 ```
 
+## Full Network Plot
+
+```{r full_graph, cache=TRUE}
+ggraph(g, layout="auto") +
+  geom_edge_fan(alpha=0.1)+
+  theme_graph()
+```
 
 
