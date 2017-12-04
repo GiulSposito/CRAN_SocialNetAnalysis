@@ -6,69 +6,93 @@ output: html_notebook
 
 ## obtendo dados de autores do CRAN
 
-```{r setup}
-# pacotes usados
-library(tidyverse) # manipulacao de dados via dplyr, tibbles, magrittr, etc..,
-library(stringr)   # manipulacao de strings
-library(igraph)    # manipulacao de grafos
-library(tidygraph) # visualizacoes de redes
-library(ggraph)    # visualizacoes de redes
+```{r setup, cache=TRUE}
+source("cran_author_network.R")
+g <- get_CRAN_network()
 ```
 
-```{r loading data, cache=TRUE}
-# dados de publicacao de pacotes
-pdb <- tools::CRAN_package_db()
+## Analisando os components
 
-# vamos obter os autors
-pbaut <- pdb$Author
-
-# limpando e tratando campo de autores
-aut <- pbaut %>%
-  str_replace_all("\\(([^)]+)\\)", "") %>% # remocao 
-  str_replace_all("\\[([^]]+)\\]", "") %>% # remocao
-  str_replace_all("<([^>]+)>", "") %>% # remocao
-  str_replace_all("\n", " ") %>% # remocao
-  str_replace_all("[Cc]ontribution.* from|[Cc]ontribution.* by|[Cc]ontributors", " ") %>%
-  str_replace_all("\\(|\\)|\\[|\\]", " ") %>% # remocao
-  iconv(to = "ASCII//TRANSLIT") %>% # limpeza dos caracters especiais
-  str_replace_all("'$|^'", "") %>%  # limpeza
-  gsub("([A-Z])([A-Z]{1,})", "\\1\\L\\2", ., perl = TRUE) %>% 
-  gsub("\\b([A-Z]{1}) \\b", "\\1\\. ", .) %>%
-  map(str_split, ",|;|&| \\. |--|(?<=[a-z])\\.| [Aa]nd | [Ww]ith | [Bb]y ", simplify = TRUE) %>% 
-  map(str_replace_all, "[[:space:]]+", " ") %>% 
-  map(str_replace_all, " $|^ | \\.", "") %>% 
-  map(function(x) x[str_length(x) != 0]) %>%
-  set_names(pdb$Package) %>% 
-  magrittr::extract(map_lgl(., function(x) length(x) > 1))
-```
-
-```{r buildnetwork}
-# conta autores por pacote
-aut_list <- aut %>%
-  unlist() %>%
-  dplyr::as_data_frame() %>%
-  count(value) %>%
-  rename(name = value, packages = n)
-
-# transforma a lista "pacote" -> [autores] em uma edge list
-edge_list <- aut %>%
-  map(combn, m = 2) %>%    # em cada pacote (map) gera uma combinacao do array de autores dois a dois
-  do.call("cbind", .) %>%  
-  t() %>%
-  dplyr::as_data_frame() %>%
-  arrange(V1, V2) %>%
-  count(V1, V2) 
-
-g <- edge_list %>%
-  select(V1, V2) %>%
-  as.matrix() %>%
-  graph.edgelist(directed = FALSE) %>%
-  as_tbl_graph() %>%  # wrapper tidygraph para o objeto igraph
-  activate("edges") %>% # tbl graph é duas linked table (edge e nodes) activate diz o que sera manipulado
-  mutate(Weight = edge_list$n) %>% # adiciona o peso nas arestas de acordo com o numero de vezes que os autores colabora
+```{r whichcomponents}
+g <- g %>% # adiciona o peso nas arestas de acordo com o numero de vezes que os autores colabora
   activate("nodes") %>%    # manipulara os nos agora
-  mutate(Component = group_components()) %>%
-  filter(Component == names(table(Component))[which.max(table(Component))])
+  mutate(component = as.factor(group_components()))
+
+authors.by.components <- g %>% 
+  activate("nodes") %>%
+  as.tibble() %>%
+  group_by(component) %>%
+  summarise( authors=n() ) %>%
+  arrange( desc(authors) )
+
+knitr::kable(head(authors.by.components,10))
+```
+
+## Comparando 3 componentes "menores"
+
+```{r plotcomponents}
+g %>%
+  filter( component %in% c(30,33,6) ) %>%
+  ggraph(layout="auto") +
+  geom_edge_fan(alpha=0.2)+
+  geom_node_point(aes(color=component),alpha=0.8, size=1) +
+  # geom_node_text(aes(label=name), color="white") +
+  theme_void() +
+  ggtitle( "Componentes 30, 33 e 6" )
+
+```
+```{r compnetworks}
+
+# componentes selecionados para estudo
+sel_comps <- c(3,30,33,6)
+
+# para cada um deles
+net_metrics <- rbindlist(lapply( sel_comps, function(comp){
+  
+  h <- g %>% filter( component == comp )
+
+  res <- data.frame(
+    component = comp,
+    nodes     = h %>% activate("nodes") %>% as.tibble() %>% nrow(),
+    density   = round(graph.density(h, loops = F),4),
+    diameter  = diameter(h, directed = F, unconnected = F, weights = NULL),
+    eccentricity = max(eccentricity(h, mode="all"))/min(eccentricity(h, mode="all"))
+  )
+  
+  return(res)
+  
+}))
+
+net_metrics
+
+```
+
+### analise de atores 
+
+```{r keyactors1}
+
+h <- g %>%
+  activate("nodes") %>%
+  filter( component %in% c(30) ) %>%
+  mutate(
+    degree = centrality_degree(),
+    btwn = round(centrality_betweenness(), 2),
+    clsn = round(centrality_closeness(normalized = T), 2),
+    eign = round(centrality_eigen(scale = T), 2),
+    clst = group_edge_betweenness()
+  ) %>%
+  activate("edges") %>%
+  mutate( ebtwn = centrality_edge_betweenness() )
+
+h %>% activate("nodes") %>%
+  filter( component==30 ) %>%
+  ggraph(layout="auto") +
+    geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn)) +
+    geom_node_point(aes(color=eign, size=degree),alpha=0.9) +
+    theme_void() +
+    ggtitle( "Combinando Métricas" )
+
+
 ```
 
 ```{r filtering}
