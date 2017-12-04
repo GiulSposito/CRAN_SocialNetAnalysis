@@ -1,0 +1,57 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+
+pbaut <- pdb$Author
+
+pbaut %>%
+  iconv(to = "ASCII//TRANSLIT") %>%
+  str_to_lower() %>%
+  str_replace_all("\\[.*?\\]", "") %>%
+  str_replace_all("[\\n\\t]", "") %>%
+  str_replace_all("\\<.*?\\>", "") %>%
+  str_replace_all("\\(.*?\\)", "") %>% 
+  str_replace_all("contributions from","") %>%
+  str_replace_all(" and ",",") %>%
+  str_replace_all(" with ",",") %>%
+  str_replace_all(" by ",",") %>%
+  str_replace_all("'$|^'", "") %>%  # limpeza
+  gsub("([A-Z])([A-Z]{1,})", "\\1\\L\\2", ., perl = TRUE) %>% 
+  gsub("\\b([A-Z]{1}) \\b", "\\1\\. ", .) %>%
+  map(str_split, ",|;|&| \\. |--|(?<=[a-z])\\.| [Aa]nd | [Ww]ith | [Bb]y ", simplify = TRUE) %>% 
+  map(str_replace_all, "[[:space:]]+", " ") %>% 
+  map(str_replace_all, " $|^ | \\.", "") %>% 
+  map(function(x) x[str_length(x) != 0]) %>%
+  set_names(pdb$Package) %>% 
+  magrittr::extract(map_lgl(., function(x) length(x) > 1))
+  
+  
+
+```
+
+```{r}
+aut <- pbaut %>%
+  str_replace_all("\\(([^)]+)\\)", "") %>% # remocao 
+  str_replace_all("\\[([^]]+)\\]", "") %>% # remocao
+  str_replace_all("<([^>]+)>", "") %>% # remocao
+  str_replace_all("\n", " ") %>% # remocao
+  str_replace_all("[Cc]ontribution.* from|[Cc]ontribution.* by|[Cc]ontributors", " ") %>%
+  str_replace_all("\\(|\\)|\\[|\\]", " ") %>% # remocao
+  iconv(to = "ASCII//TRANSLIT") %>% # limpeza dos caracters especiais
+  str_replace_all("'$|^'", "") %>%  # limpeza
+  gsub("([A-Z])([A-Z]{1,})", "\\1\\L\\2", ., perl = TRUE) %>% 
+  gsub("\\b([A-Z]{1}) \\b", "\\1\\. ", .) %>%
+  map(str_split, ",|;|&| \\. |--|(?<=[a-z])\\.| [Aa]nd | [Ww]ith | [Bb]y ", simplify = TRUE) %>% 
+  map(str_replace_all, "[[:space:]]+", " ") %>% 
+  map(str_replace_all, " $|^ | \\.", "") %>% 
+  map(function(x) x[str_length(x) != 0]) %>%
+  set_names(pdb$Package) %>% 
+  magrittr::extract(map_lgl(., function(x) length(x) > 1))
+
+aut
+```
+

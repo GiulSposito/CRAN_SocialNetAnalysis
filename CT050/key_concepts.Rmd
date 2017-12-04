@@ -287,12 +287,4 @@ ggraph(h, layout="auto") +
 ```
 
 
-# Cohesion: measures of overal network structure
-
-```{r}
-
-```
-
-
-
 
