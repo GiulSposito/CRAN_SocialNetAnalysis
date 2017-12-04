@@ -55,8 +55,9 @@ get_CRAN_network <- function(){
     graph.edgelist(directed = FALSE) %>%
     as_tbl_graph() %>%  # wrapper tidygraph para o objeto igraph
     activate("edges") %>% # tbl graph é duas linked table (edge e nodes) activate diz o que sera manipulado
-    mutate(weight = edge_list$n)
+    mutate(weight = edge_list$n) %>%
+    activate("nodes") %>%
     left_join(aut_list, by="name")
-  
+
   return(g)
 }

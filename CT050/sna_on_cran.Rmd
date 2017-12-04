@@ -8,16 +8,19 @@ output: html_notebook
 
 ```{r setup, cache=TRUE}
 source("cran_author_network.R")
-g <- get_CRAN_network()
+authors_network <- get_CRAN_network()
 ```
 
 ## Analisando os components
 
 ```{r whichcomponents}
-g <- g %>% # adiciona o peso nas arestas de acordo com o numero de vezes que os autores colabora
-  activate("nodes") %>%    # manipulara os nos agora
+
+# identifica os components
+g <- authors_network %>% 
+  activate("nodes") %>%  
   mutate(component = as.factor(group_components()))
 
+# tabela components por número de autores
 authors.by.components <- g %>% 
   activate("nodes") %>%
   as.tibble() %>%
@@ -25,14 +28,19 @@ authors.by.components <- g %>%
   summarise( authors=n() ) %>%
   arrange( desc(authors) )
 
+# top 10 maiores components
 knitr::kable(head(authors.by.components,10))
 ```
 
 ## Comparando 3 componentes "menores"
 
 ```{r plotcomponents}
+
+sel_components <- c(30,33,6)
+
+# plotando os components
 g %>%
-  filter( component %in% c(30,33,6) ) %>%
+  filter( component %in% sel_components ) %>%
   ggraph(layout="auto") +
   geom_edge_fan(alpha=0.2)+
   geom_node_point(aes(color=component),alpha=0.8, size=1) +
@@ -43,11 +51,8 @@ g %>%
 ```
 ```{r compnetworks}
 
-# componentes selecionados para estudo
-sel_comps <- c(3,30,33,6)
-
 # para cada um deles
-net_metrics <- rbindlist(lapply( sel_comps, function(comp){
+net_metrics <- rbindlist(lapply( sel_components, function(comp){
   
   h <- g %>% filter( component == comp )
 
@@ -63,7 +68,7 @@ net_metrics <- rbindlist(lapply( sel_comps, function(comp){
   
 }))
 
-net_metrics
+knitr::kable(net_metrics)
 
 ```
 
@@ -71,42 +76,90 @@ net_metrics
 
 ```{r keyactors1}
 
-h <- g %>%
-  activate("nodes") %>%
-  filter( component %in% c(30) ) %>%
-  mutate(
-    degree = centrality_degree(),
-    btwn = round(centrality_betweenness(), 2),
-    clsn = round(centrality_closeness(normalized = T), 2),
-    eign = round(centrality_eigen(scale = T), 2),
-    clst = group_edge_betweenness()
-  ) %>%
-  activate("edges") %>%
-  mutate( ebtwn = centrality_edge_betweenness() )
+calcNodeMetrics <- function(net, comp){
+  net %>%
+    activate("nodes") %>%
+    filter( component==comp ) %>%
+    mutate(
+      degree = centrality_degree(),
+      btwn = round(centrality_betweenness(), 2),
+      clsn = round(centrality_closeness(normalized = T), 2),
+      eign = round(centrality_eigen(scale = T), 2),
+      clst = as.factor(group_edge_betweenness())
+    ) %>%
+    activate("edges") %>%
+    mutate( ebtwn = centrality_edge_betweenness() ) %>%
+    return()
+}
 
-h %>% activate("nodes") %>%
-  filter( component==30 ) %>%
-  ggraph(layout="auto") +
+plotNetwork <- function(net) {
+  ggraph(net, layout="kk") +
     geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn)) +
     geom_node_point(aes(color=eign, size=degree),alpha=0.9) +
-    theme_void() +
-    ggtitle( "Combinando Métricas" )
+    theme_void() %>%
+    return()
+}
 
-
-```
-
-```{r filtering}
-g <- g %>%
-  left_join(aut_list, by="name") %>%
-  filter(packages > 5) %>% # pelo menos 4 pacotes
-  mutate(Component = group_components()) %>%
-  filter(Component == names(table(Component))[which.max(table(Component))])
+netMetrics <- lapply(sel_components, function(comp) calcNodeMetrics(g,comp) )
+netMetrics <- setNames(netMetrics, sel_components)
+netPlots <- lapply(netMetrics, plotNetwork)
 
 ```
 
-```{r fullplot}
-ggraph(g, layout = 'lgl') +
-  geom_edge_fan(alpha = 0.1) +
-  theme_graph()
+### Component 6
+
+```{r comp30, cache=T}
+netPlots$`30` + ggtitle( "Componente 30" )
 ```
+
+
+Numa rede totalmente conectada (densidade = 1), todos os nós e arestas tem as mesmas métricas, não é possível selecionar um (ou mais autores) como mais influente ou relação mais importante, a rede é homogênea. Este componente é composto de autores de um só pacote ([rcorpora](https://cran.r-project.org/web/packages/rcorpora/index.html)), cujo os autores não trabalharam com nenhum outro conjunto de autores.
+
+### Componente 33
+
+#### Betweenness ("Bridges")
+
+```{r comp33plot1}
+  ggraph(netMetrics$`33`, layout="kk") +
+    geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn)) +
+    geom_node_point(aes(color=btwn, size=btwn),alpha=0.9) +
+    theme_void() + 
+    theme( legend.position = "none" ) + 
+    ggtitle( "Componente 33 - Betweenness" )
+```
+
+```{r comp33table1}
+netMetrics$`33` %>%
+  activate("nodes") %>%
+  as.tibble() %>%
+  arrange( desc(btwn), desc(degree), desc(eign), desc(clsn) ) %>%
+  select(-packages, -component, -clst) %>%
+  head(10) %>%
+  knitr::kable(caption = "Autores por Betweeness (10 mais)")
+
+```
+
+A rede do componente 33 já é bem mais desacoplada, de menor densidade, é possível visualizar os autores mais bem "relacionados" e os autores que atuam com "pontes" entre os diversos nós na estrutura.
+
+```{r comp33plot2}
+ggraph(netMetrics$`33`, layout="kk") +
+  geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn)) +
+  geom_node_point(aes(color=eign, size=eign),alpha=0.9) +
+  theme_void() + 
+  theme( legend.position = "none" ) + 
+  ggtitle( "Componente 33 - Eigenvector Centrality" )
+```
+
+```{r comp33table2}
+netMetrics$`33` %>%
+  activate("nodes") %>%
+  as.tibble() %>%
+  arrange( desc(eign), desc(degree), desc(btwn), desc(clsn) ) %>%
+  select(-packages, -component, -clst) %>%
+  head(10) %>%
+  knitr::kable( caption="Autores por Eigenvector (10 mais)")
+
+```
+
+### Componente 6
 
