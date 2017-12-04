@@ -1,9 +1,9 @@
 ---
 title: "SNA KEY CONCEPTS"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -325,6 +325,6 @@ ggraph(h_layout) +
   geom_edge_fan(alpha=0.2) +
   geom_node_point(aes(color=clst),alpha=0.9, size=8) +
   geom_node_text(aes(label=name), color="white") +
-  ggtitle( "Key Actors" ) + 
+  ggtitle( "Community / Clusters" ) + 
   theme_void() 
 ```
