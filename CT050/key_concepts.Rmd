@@ -211,22 +211,49 @@ h <- h_edgelist %>%
   graph.edgelist(directed = FALSE) %>%
   as_tbl_graph() %>%
   activate("nodes") %>%
+  
+  # node metrics, including clustering (clst)
   mutate( name = LETTERS[1:11],
           degree = as.factor(centrality_degree()),
           btwn = round(centrality_betweenness(), 2),
           clsn = round(centrality_closeness(normalized = T), 2),
-          eign = round(centrality_eigen(scale = T), 2)) %>%
+          eign = round(centrality_eigen(scale = T), 2),
+          clst = as.factor(group_edge_betweenness())) %>% 
+  
+  # key actors type
+  mutate( type = as.factor(case_when(
+    name == "F" ~ "gatekeeper",
+    name == "C" ~ "access to central actors",
+    TRUE ~ "others"
+  ))) %>%
+  
+  # centrality das arestas
   activate("edges") %>%
   mutate( ebtwn = centrality_edge_betweenness() )
 ```
 
+```{r}
+h_layout = create_layout(h, layout="lgl")
+
+ggraph(h_layout) +
+  geom_edge_fan(alpha=0.2) +
+  geom_node_point(color="red",alpha=0.9, size=8) +
+  geom_node_text(aes(label=name), color="white") +
+  theme_void() +
+  ggtitle( "Exemplo" ) + 
+  theme( legend.position = "none" )
+```
+
+
+
+
 ```{r plotnet}
-ggraph(h, layout="auto") +
+ggraph(h_layout) +
   geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn, label=ebtwn), label_size=3) +
   geom_node_point(aes(color=degree),alpha=0.9, size=8) +
   geom_node_text(aes(label=name), color="white") +
   theme_void() +
-  ggtitle( "Key Actors" ) + 
+  ggtitle( "Combinando Métricas" ) + 
   scale_color_manual(breaks = c("1", "2","3", "5", "10"),
                      values=c("red","red","lightskyblue","lightskyblue","darkblue"))
 
@@ -264,27 +291,40 @@ access to central actors: C
 
 ```{r}
 
-h <- h %>% 
-  activate("nodes") %>%
-  mutate( type = as.factor(case_when(
-    name == "F" ~ "gatekeeper",
-    name == "C" ~ "access to central actors",
-    TRUE ~ "others"
-  )))
-  
+# h <- h %>% 
+#   activate("nodes") %>%
+#   mutate( type = as.factor(case_when(
+#     name == "F" ~ "gatekeeper",
+#     name == "C" ~ "access to central actors",
+#     TRUE ~ "others"
+#   )))
+#   
+# h <- create_layout(h,)
 
-ggraph(h, layout="auto") +
+ggraph(h_layout) +
   geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn), label_size=3, legend="none") +
   geom_node_point(aes(color=type),alpha=0.9, size=8) +
   geom_node_text(aes(label=name), color="white") +
-  geom_node_text(aes(label=eign), nudge_y = .38, size=3) +
+  geom_node_text(aes(label=eign), nudge_y = .8, size=3) +
   theme_void() +
-  ggtitle( "Components" ) + 
-  scale_color_manual(breaks = c("others","gatekeeper","access to central actors"),
-                     values=c("red","lightskyblue","darkblue"))
-  
+  ggtitle( "Key Actors" ) + 
+  scale_color_manual(breaks = c("others","gatekeeper","access to central actors"),values=c("red","lightskyblue","darkblue"))
   
 ```
 
+## Comunidades
 
+Many networks consist of modules which are densely connected themselves but sparsely connected to other modules.
 
+The edge betweenness score of an edge measures the number of shortest paths through it. The idea of the edge betweenness based community structure detection is that it is likely that edges connecting separate modules have high edge betweenness as all the shortest paths from one module to another must traverse through them. So if we gradually remove the edge with the highest edge betweenness score we will get a hierarchical map, a rooted tree, called a dendrogram of the graph.
+
+ performs this algorithm by calculating the edge betweenness of the graph, removing the edge with the highest edge betweenness score, then recalculating edge betweenness of the edges and again removing the one with the highest score, etc.
+
+```{r community}
+ggraph(h_layout) +
+  geom_edge_fan(alpha=0.2) +
+  geom_node_point(aes(color=clst),alpha=0.9, size=8) +
+  geom_node_text(aes(label=name), color="white") +
+  ggtitle( "Key Actors" ) + 
+  theme_void() 
+```
