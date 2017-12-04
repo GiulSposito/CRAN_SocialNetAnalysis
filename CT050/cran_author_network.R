@@ -16,6 +16,10 @@ get_CRAN_network <- function(){
   
   # limpando e tratando campo de autores
   aut <- pbaut %>%
+    str_replace_all("\\[.*?\\]", "") %>%
+    str_replace_all("[\\n\\t]", "") %>%
+    str_replace_all("\\<.*?\\>", "") %>%
+    str_replace_all("\\(.*?\\)", "") %>% 
     str_replace_all("\\(([^)]+)\\)", "") %>% # remocao 
     str_replace_all("\\[([^]]+)\\]", "") %>% # remocao
     str_replace_all("<([^>]+)>", "") %>% # remocao

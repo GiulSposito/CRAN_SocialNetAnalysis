@@ -1,6 +1,8 @@
 ---
 title: "SNA on CRAN Authors"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 
@@ -29,14 +31,14 @@ authors.by.components <- g %>%
   arrange( desc(authors) )
 
 # top 10 maiores components
-knitr::kable(head(authors.by.components,10))
+knitr::kable(head(authors.by.components,10), caption = "Componentes respectivos tamanhos")
 ```
 
 ## Comparando 3 componentes "menores"
 
 ```{r plotcomponents}
 
-sel_components <- c(30,33,6)
+sel_components <- c(30,33,717)
 
 # plotando os components
 g %>%
@@ -92,24 +94,20 @@ calcNodeMetrics <- function(net, comp){
     return()
 }
 
-plotNetwork <- function(net) {
-  ggraph(net, layout="kk") +
-    geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn)) +
-    geom_node_point(aes(color=eign, size=degree),alpha=0.9) +
-    theme_void() %>%
-    return()
-}
-
 netMetrics <- lapply(sel_components, function(comp) calcNodeMetrics(g,comp) )
 netMetrics <- setNames(netMetrics, sel_components)
-netPlots <- lapply(netMetrics, plotNetwork)
 
 ```
 
 ### Component 6
 
 ```{r comp30, cache=T}
-netPlots$`30` + ggtitle( "Componente 30" )
+ggraph(netMetrics$`30`, layout="kk") +
+  geom_edge_fan2(alpha=0.2, aes(edge_colour = ebtwn)) +
+  geom_node_point(aes(color=eign, size=degree),alpha=0.9) +
+  theme_void() %>% +
+  theme( legend.position = "none" ) + 
+  ggtitle( "Componente 30" )
 ```
 
 
@@ -133,13 +131,14 @@ netMetrics$`33` %>%
   activate("nodes") %>%
   as.tibble() %>%
   arrange( desc(btwn), desc(degree), desc(eign), desc(clsn) ) %>%
-  select(-packages, -component, -clst) %>%
+  select(-component, -clst) %>%
   head(10) %>%
   knitr::kable(caption = "Autores por Betweeness (10 mais)")
 
 ```
 
-A rede do componente 33 já é bem mais desacoplada, de menor densidade, é possível visualizar os autores mais bem "relacionados" e os autores que atuam com "pontes" entre os diversos nós na estrutura.
+A rede do componente 33 já é bem mais desacoplada, de menor densidade, é possível visualizar os autores mais bem "relacionados" e os autores que atuam com "pontes" entre os diversos nós na estrutura. Isso é reflexo de quando o autor trabalha em momentos diferentes com outros grupos de autores.
+
 
 ```{r comp33plot2}
 ggraph(netMetrics$`33`, layout="kk") +
@@ -162,4 +161,59 @@ netMetrics$`33` %>%
 ```
 
 ### Componente 6
+
+O componente 6 tem uma estrutura mais acoplada, com uma densidade de 0,26, intermediária entre a 30 e 33, é possível observar grupos que trabalham juntos e grande autor central conectando os subgrupos.
+
+```{r comp717plot1}
+  ggraph(netMetrics$`717`, layout="kk") +
+    geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn)) +
+    geom_node_point(aes(color=btwn, size=btwn),alpha=0.9) +
+    theme_void() + 
+    theme( legend.position = "none" ) + 
+    ggtitle( "Componente 717 - Betweenness" )
+```
+
+```{r comp717table1}
+netMetrics$`717` %>%
+  activate("nodes") %>%
+  as.tibble() %>%
+  arrange( desc(btwn), desc(degree), desc(eign), desc(clsn) ) %>%
+  select(-component, -clst) %>%
+  head(10) %>%
+  knitr::kable(caption = "Autores por Betweeness (10 mais)")
+
+```
+
+Podemos observar, de fato, que o autor central [Quanli Wang](https://www.linkedin.com/in/quanli-wang-5645a01b/) trabalhou em 7 pacotes diferente, servindo de pontes para os vários subgrupos presente neste componente. Como ele é o único autor ligando esses subgrupos ele também é o mais bem "referenciado".
+
+
+```{r comp717plot2}
+ggraph(netMetrics$`717`, layout="kk") +
+  geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn)) +
+  geom_node_point(aes(color=eign, size=eign),alpha=0.9) +
+  theme_void() + 
+  theme( legend.position = "none" ) + 
+  ggtitle( "Componente 717 - Eigenvector Centrality" )
+```
+
+
+
+```{r comp717table2}
+netMetrics$`717` %>%
+  activate("nodes") %>%
+  as.tibble() %>%
+  arrange( desc(eign), desc(degree), desc(btwn), desc(clsn) ) %>%
+  select(-packages, -component, -clst) %>%
+  head(10) %>%
+  knitr::kable( caption="Autores por Eigenvector (10 mais)")
+
+```
+
+
+
+
+
+
+
+
 
