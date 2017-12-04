@@ -1,0 +1,137 @@
+---
+title: "Análise de Rede Social nos autores de pacotes do CRAN usando R"
+author: "Giuliano Sposito"
+date: "Dezembro de 2017"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+# default behavior of document chunks
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+# library setup
+library(needs)
+needs(stringr)   # limpeza e tratamento de strings
+needs(tidyverse) # pipeline e manipulacao de dados
+needs(igraph)    # manipulacao de grafos
+needs(tidygraph) # visualizacoes de redes
+needs(ggraph)    # visualizacoes de redes
+```
+
+Este artigo explora técnicas de *Análise de Redes Sociais* para analisar a rede de colaboração de autores de pacotes de análise para R[^1] publicados no CRAN[^2].
+
+## Análise de Rede Social
+
+### Introducção
+
+### Capital Social
+
+Implicações do capital social poderiam ser:
+
+* Pessoas com uma rede pessoal _mais forte_ seriam mais produtivas, felizes e com melhor peformance
+* Companias que saibam gerenciar suas alianças são mais flexíveis, adaptativas e resilientes
+* O bem estar pessoal é frequentemente ligado ao convívio pessoal
+
+Usos e implicações do capital social e organização em redes para empresas:
+
+| Prática de Gestão  | Necessidade de negócio |
+|--------------------|------------------------|
+| Gestão de Talentos | Encontrar os líderes naturais na organização |
+| Inovação           | Identificar fronteiras. Garantir que a organização tenha acesso a novas idéias |
+| Colaboração        | Encontrar lacunas no conhecimento dentro de grupos, ou entre organizações ou geografias. Monitorar ou medir mudanças. |
+| Gestão do conhecimento | Identificar e manter conhecimentos vitais. Monitorar ou medir mudanças no conhecimento ou na troca de conhecimento |
+| Mudança Organizacional e Desenvolvimento | Encontrar líderes de opinião para iniciativas de gerenciamento de mudanças ou durante a integração após fusões e aquisições |
+| Desempenho Organizacional | Diagnosticar a coesão entre os membros da equipe e identificar conexões críticas para a melhoria. |
+
+### _Embeddeness_ (Estrutura)
+
+#### _Bridges_ (Pontes)
+
+#### _Clousures_ (Fechamentos)
+
+## Conceitos Chaves para Análise de Redes
+
+A *teoria de grafos*, campo da da matemática que estuda as relações entre os objetos de um determinado conjunto, fornece os mecanismos matemáticos que são base para a análise das estruturas da rede. Através do entendimento da estrutura de uma rede é possível ter _insights_ sobre seus padrões, propriedades e indivíduos. 
+
+Um grafo é uma representação matemática de uma rede social, onde os elementos (empresas, pessoas, etc.) são representados por vértices e a relação entre os elementos são representados como arestas entre dois vértices. A ligação (aresta) pode ser direcional ou não direcional. Pode-se associar valores tanto aos nós como arestas.
+
+```{r network}
+# Lista de arestas, os números são identificadores dos nós
+g_edgelist <- data.frame(
+  from = c( 1,1,2,2,3,3,5,5),
+  to   = c( 2,3,3,5,4,5,6,7)
+) 
+
+# construindo a rede a partir da lista de arestas
+g <- g_edgelist %>%
+  as.matrix() %>%
+  graph.edgelist(directed = FALSE) %>% # usando igraph 
+  as_tbl_graph() %>%
+  activate("nodes") %>%
+  mutate( name = LETTERS[1:7] ) # nomeando os nós
+
+# plotando o graph
+ggraph(g, layout="lgl") +
+  geom_edge_fan(alpha=0.3) +
+  geom_node_point(color="blue",alpha=0.8, size=8) +
+  geom_node_text(aes(label=name), color="white") +
+  theme_void() +
+  ggtitle( "Exemplo de Rede" ) + 
+  theme( legend.position = "none" )
+
+```
+
+Há uma série de métricas e propriedades de um grafo que podem fornecer informações relavantes sobre a relação (arestas) entre os indivíduos (vértices) e os próprios indivíduos quando esse representa uma rede social. Iremos explorar algumas propriedades que podem estar ligadas a identificação de capital social, são elas:
+
+* Degree Centrality
+* Betnweeness Centrality
+* Closness Centrality
+* Eigenvector Centrality
+* Components
+* Density
+* Diameter
+* Eccentricy
+
+### Degree Centrality
+
+O Grau (_Degree_) é o número de arestas (ou links) que levam para dentro ou para fora de um vértice. Freqüentemente usado como medida de conexão de um nó para outros nós imediatos. Podendo assim representar influencia e/ou popularidade de um nó juntos aos demais. Útil na avaliação de quais nós são fundamentais em relação à disseminação de informações e na capacidade influenciar outros nós na localidade imediata.
+
+```{r degree}
+
+# calculando a métrica
+g <- g %>% 
+  mutate( degree = centrality_degree(), 
+          btwn = round(centrality_betweenness(),2),
+          clsn = round(centrality_closeness(normalized = T),2),
+          eign =round(centrality_eigen(scale = F), 2) )
+
+ggraph(g, layout="lgl") +
+  geom_edge_fan(alpha=0.4) +
+  geom_node_point(aes(color = degree), size=8) + 
+  geom_node_text(aes(label=name),color="white") +
+  geom_node_text(aes(label=degree, color=degree), nudge_y = 0.6 ) +
+  theme_graph() +
+  ggtitle( "Degree" ) + 
+  theme( legend.position = "none" )
+
+```
+
+### Betnweeness Centrality
+
+### Closeness Centrality
+
+### Eigenvector Centrality
+
+### Gatekeepers & Accessors
+
+### Componentes
+
+## Rede de Colaboração de Autores no CRAN
+
+## Referências
+
+[^1]: [R](https://www.r-project.org/) é uma linguagem de programação e ambiente para computação e análise estatística, de uso gratuíto e que que fornece uma ampla variedade de técnicas  para: modelagem linear e não-linear, testes estatísticos, análise de séries temporais, classificação, agrupamento. 
+
+[^2]: [CRAN](https://cran.r-project.org/) ou _Comprehensive R Archive Network_ é uma rede de ftp e servidores web ao redor do mundo que armazenam versões de código e documentação atualizadas para pacotes e bibliotecas para R. 
