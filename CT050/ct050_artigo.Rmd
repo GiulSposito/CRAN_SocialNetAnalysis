@@ -642,12 +642,18 @@ aut_list %>%
 
 Observa-se que mais de 75% (3rd Quarter) dos autores contribuiram apenas 1 vez com outros autores, para estabelecer uma rede de colaboração mais efetiva (e não apenas momentânea), vamos filtrar na rede autores que  pelo menos 5 pacotes.
 
-```{r}
+```{r majorcomp}
+# obtendo a rede de colaboradores com mais de 5 publicações
 h <- authors_network %>%
   activate("nodes") %>%
   filter( packages > 5 ) %>%
   mutate( component = group_components() ) %>%
+  # escolhendo o maior component
   filter( component == names(table(component))[which.max(table(component))] ) 
+
+# dados de autores e arestas
+total_authors <- h  %>% activate("nodes") %>% as.tibble() %>% nrow()
+total_edges <- h  %>% activate("edges") %>% as.tibble() %>% nrow()
 
 ggraph(h, layout="lgl") +
   geom_edge_fan(alpha=0.1)+
@@ -655,8 +661,104 @@ ggraph(h, layout="lgl") +
   theme_void()
 ```
 
+Temos então o maior componente da rede de colaboração de autores que publicaram mais de 5 pacotes com as características:
 
+```{r mcmetrics}
 
+knitr::kable( data.frame(
+    nodes     = h %>% activate("nodes") %>% as.tibble() %>% nrow(),
+    edges     = h %>% activate("edges") %>% as.tibble() %>% nrow(),
+    density   = round(graph.density(h, loops = F),4),
+    diameter  = diameter(h, directed = F, unconnected = F, weights = NULL),
+    eccentricity = max(eccentricity(h, mode="all"))/min(eccentricity(h, mode="all"))
+), caption = "Dados do Componente de Autores")
+
+```
+
+#### Autores Chaves
+
+Nesta rede, vamos então localizar e analisar os principais autores chave, usando as métricas de centralidade.
+
+```{r mccentrality}
+h <- h %>%
+  activate("nodes") %>%
+  mutate(
+    degree = centrality_degree(),
+    btwn = round(centrality_betweenness(), 2),
+    clsn = round(centrality_closeness(normalized = T), 2),
+    eign = round(centrality_eigen(scale = T), 2)
+  ) %>%
+  activate("edges") %>%
+  mutate( ebtwn = centrality_edge_betweenness() )
+
+authors <- h %>%
+  activate("nodes") %>%
+  as.tibble() %>%
+  arrange(desc(btwn))
+
+knitr::kable( head(authors, 10), caption = "Principais Autores, pelo critério de betweeness. (top 10)")
+```
+
+Podemos notar que a lista tráz de fato, autores influentes na comunidade de desenvolvimento R, como [Hadley Wickham](http://hadley.nz/) (cientista Chefe na empresa RStudio), [Martin Maechler](https://stat.ethz.ch/~maechler/) (estatístico suíço na ETH) e [Jeffrey Horner](http://biostat.mc.vanderbilt.edu/wiki/Main/JeffreyHorner) (Developer no departamento de bio estatística da universidade Vanderbuilt). Importante notar que este último, possue alto **betweeness* mas relativamente pouco grau (*degree*) comparado aos autores da lista.
+
+Vamos visualizar os autores na rede.
+
+```{r plottopauthors}
+
+authors_top10 <- authors[1:10,]$name
+authors_top20 <- authors[11:20,]$name
+
+h <- h %>%
+  activate("nodes") %>%
+  mutate ( 
+    rank = as.factor(
+      case_when(
+        name %in% authors_top10 ~ "top 10",
+        name %in% authors_top20 ~ "top 20",
+        TRUE ~ "others"
+      )
+    )
+  )
+
+ggraph(h, layout="lgl") +
+  geom_edge_fan(alpha=0.1)+
+  geom_node_point(aes(color=rank),alpha=0.8, size=1) +
+  theme_void() +
+  scale_color_manual(breaks = c("others","top 10","top 20"),
+                     values=c("grey","red","orange"))
+        
+```
+
+Embora a visualização com todos os nós seja complicada é possível visualizar que alguns dos autores no grupo selecionado realmente atuam como "pontes" (_bridges_) concentrado arestas entre grupos distintos.
+
+#### Comunidades
+
+Uma outra análise que podemos fazer, diz respeito a identificar e avaliar os diversos clusters (_comunidades_) dentro da rede, ou seja, grupos de autores fortemente conectados entre si, e fracamente conectados com outros grupo de autores, podemos identificar agrupando de acordo com a centralidade de *betweenness* das arestas.
+
+```{r mccommunity}
+h <- h %>%
+  activate("nodes") %>%
+  mutate(
+    clst = as.factor(group_edge_betweenness())
+  )
+
+clusters <- h %>%
+  activate("nodes") %>%
+  as.tibble() %>%
+  group_by( clst ) %>%
+  summarise( authors = n() ) %>%
+  arrange( desc(authors) )
+
+total_clusers <- nrow(clusters)
+
+knitr::kable( head(clusters, 10), caption = "Comunidades de Autores dentro da Rede" )
+  
+```
+Encontramos `r total_clusters` comunidades dentro da rede, dos quais duas se destacam pelo número de colaboradores bem acima 
+
+## Conclusão
+
+Vimos que as técnicas de 
 
 ## Notas e Referências
 
