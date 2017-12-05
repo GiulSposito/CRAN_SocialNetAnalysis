@@ -1,0 +1,26 @@
+## Análise de Rede Social
+
+### Introducção
+
+### Capital Social
+
+Implicações do capital social poderiam ser:
+
+* Pessoas com uma rede pessoal _mais forte_ seriam mais produtivas, felizes e com melhor performance
+* Companhias que saibam gerenciar suas alianças são mais flexíveis, adaptativas e resilientes
+* O bem estar pessoal é frequentemente ligado ao convívio pessoal
+
+Usos e implicações do capital social e organização em redes para empresas:
+
+* **Gestão de Talentos**: Encontrar os líderes naturais na organização |
+* **Inovação**: Identificar fronteiras. Garantir que a organização tenha acesso a novas idéias 
+* **Colaboração**: Encontrar lacunas no conhecimento dentro de grupos, ou entre organizações ou geografias. Monitorar ou medir mudanças. 
+* **Gestão do conhecimento**: Identificar e manter conhecimentos vitais. Monitorar ou medir mudanças no conhecimento ou na troca de conhecimento
+* **Mudança Organizacional e Desenvolvimento**: Encontrar líderes de opinião para iniciativas de gerenciamento de mudanças ou durante a integração após fusões e aquisições.
+* **Desempenho Organizacional**: Diagnosticar a coesão entre os membros da equipe e identificar conexões críticas para a melhoria.
+
+### _Embeddeness_ (Estrutura)
+
+#### _Bridges_ (Pontes)
+
+#### _Clousures_ (Fechamentos)

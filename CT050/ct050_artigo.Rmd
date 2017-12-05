@@ -26,33 +26,6 @@ NUDGE_Y = 0.3
 
 Este artigo explora técnicas de *Análise de Redes Sociais* para analisar a rede de colaboração de autores de pacotes de análise para R[^1] publicados no CRAN[^2].
 
-## Análise de Rede Social
-
-### Introducção
-
-### Capital Social
-
-Implicações do capital social poderiam ser:
-
-* Pessoas com uma rede pessoal _mais forte_ seriam mais produtivas, felizes e com melhor performance
-* Companhias que saibam gerenciar suas alianças são mais flexíveis, adaptativas e resilientes
-* O bem estar pessoal é frequentemente ligado ao convívio pessoal
-
-Usos e implicações do capital social e organização em redes para empresas:
-
-* **Gestão de Talentos**: Encontrar os líderes naturais na organização |
-* **Inovação**: Identificar fronteiras. Garantir que a organização tenha acesso a novas idéias 
-* **Colaboração**: Encontrar lacunas no conhecimento dentro de grupos, ou entre organizações ou geografias. Monitorar ou medir mudanças. 
-* **Gestão do conhecimento**: Identificar e manter conhecimentos vitais. Monitorar ou medir mudanças no conhecimento ou na troca de conhecimento
-* **Mudança Organizacional e Desenvolvimento**: Encontrar líderes de opinião para iniciativas de gerenciamento de mudanças ou durante a integração após fusões e aquisições.
-* **Desempenho Organizacional**: Diagnosticar a coesão entre os membros da equipe e identificar conexões críticas para a melhoria.
-
-### _Embeddeness_ (Estrutura)
-
-#### _Bridges_ (Pontes)
-
-#### _Clousures_ (Fechamentos)
-
 ## Conceitos Chaves para Análise de Redes
 
 A *teoria de grafos*, campo da da matemática que estuda as relações entre os objetos de um determinado conjunto, fornece os mecanismos matemáticos que são base para a análise das estruturas da rede. Através do entendimento da estrutura de uma rede é possível ter _insights_ sobre seus padrões, propriedades e indivíduos. 
@@ -113,8 +86,8 @@ Há uma série de métricas e propriedades de um grafo que podem fornecer informaçõ
 O Grau (_Degree_) é o número de arestas (ou links) que levam para dentro ou para fora de um vértice. Freqüentemente usado como medida de conexão de um nó para outros nós imediatos. Podendo assim representar influencia e/ou popularidade de um nó juntos aos demais. Útil na avaliação de quais nós são fundamentais em relação à disseminação de informações e na capacidade influenciar outros nós na localidade imediata.
 
 Exemplos:
- * Quantas pessoas essa pessoa pode alcançar diretamente? 
- * Em uma rede de músicos: com quantas pessoas essa pessoa já colaborou/tocou?
+* Quantas pessoas essa pessoa pode alcançar diretamente? 
+* Em uma rede de músicos: com quantas pessoas essa pessoa já colaborou/tocou?
 
 ```{r degree}
 # plot da rede evidenciando o degree
@@ -135,6 +108,8 @@ ggraph(g_layout) +
 A *Betweenness Centrality* é uma métrica que representa quantos caminhos curtos (_shortest path_) que ligam outros nó da rede, passam pelo nó em questão. Para calcular o valor para um determinado nó **v**, calcule o número de caminhos mais curtos entre os nós **i** e **j** que passam através de **v** e divida por todos os caminhos mais curtos entre **i** e **j**. Repita para todo os nós.
 
 É uma medida importante, pois representa "o quanto" um nó, ou vértice, está dentro dos fluxos de informações possíveis entre os outros nós. Quanto mais alto o valor, maior a importância do nó, como um elo de comunicação entre os demais nós.
+
+Esta métrica também pode ser calculada com respeito a uma aresta, assim estaríamos medindo o quanto um link entre dos nós participa dos caminhos mais curtos entre os nós da rede.
 
 Exemplos: 
 * Qual a probabilidade de esta pessoa ser a rota mais direta entre duas pessoas na rede?
@@ -184,7 +159,8 @@ A centralidade do _autovetores_ de um nó é proporcional à soma das centralidades
 
 Está associado a reputação e um vértice com respeito às suas ligações.
 
-Exemplos: 
+Exemplos:
+
 * Quão bem esta pessoa está conectada a outras pessoas bem conectadas?
 * Na rede de citações de artigos: quem é o autor mais citado por outros autores bem citados?
 
@@ -200,11 +176,159 @@ ggraph(g_layout) +
 ```
 
 
-### Gatekeepers & Accessors
+#### Componentes
+
+Um rede pode ter ser segmentada, ou seja, nós formam subredes não conectadas entre si, tais subredes são chamadas de componentes.
+
+```{r components}
+# montando uma lista de arestas (os números identificam o vértice)
+edgelist <- data.frame(
+  from = c(1,1,2,4,2,3,4,5,6,6,7,7,8,8,9,10),
+  to   = c(2,3,4,3,5,4,5,1,7,8,9,8,9,10,10,7)
+)
+
+# construindo o grafo a partid da lista de aresta
+edgelist %>%
+  as.matrix() %>%
+  graph.edgelist(directed = T) %>%
+  as_tbl_graph() %>%
+  activate("nodes") %>%
+  mutate( name = LETTERS[1:10],
+          component = as.factor(group_components())) -> g
 
 
+ggraph(g, layout="kk") +
+  geom_edge_fan(alpha=0.2, arrow = arrow(type="closed", angle=10, length = unit(5,units = "mm") ))+
+  geom_node_point(aes(color=component),alpha=0.8, size=8) +
+  geom_node_text(aes(label=name), color="white") +
+  theme_void() +
+  ggtitle( "Components" ) + 
+  theme( legend.position = "none" )
+
+```
 
 
+### Identificando Atores e Padrões
+
+Usando as métricas listadas acima é possível identificar e classificar a atuação e importancia dos atores em uma rede.
+
+Tome-se como exemplo esta rede:
+
+```{r kpnetwork}
+# lista de ligacoes
+h_edgelist <- data.frame(
+  from = c( 0,  1, 1,  2, 2, 3, 3,  3,  4, 5, 5, 5, 8),
+  to   = c(10, 10, 2, 10, 3, 4, 5, 10, 10, 6, 7, 8, 9)
+) + 1
+
+# construcao da rede
+h <- h_edgelist %>%
+  as.matrix() %>%
+  graph.edgelist(directed = FALSE) %>%
+  as_tbl_graph() %>%
+  activate("nodes") %>%
+  mutate( name = LETTERS[1:11] ) # nomeando nos
+
+# plot
+ggraph(h, layout="kk") +
+  geom_edge_fan(alpha=0.2) +
+  geom_node_point(color="red",alpha=0.9, size=8) +
+  geom_node_text(aes(label=name), color="white") +
+  theme_void() +
+  ggtitle( "Exemplo" ) + 
+  theme( legend.position = "none" )
+```
+
+Vamos combinar as medidas de centralidade para exibir importantes atores na estrutura.
+
+```{r kpcentralities}
+# calculando métricas de centralidade 
+h <- h %>%
+  activate("nodes") %>%
+  mutate (
+    degree = as.factor(centrality_degree()),
+    btwn = round(centrality_betweenness(), 2),
+    clsn = round(centrality_closeness(normalized = T), 2),
+    eign = round(centrality_eigen(scale = T), 2),
+    clst = as.factor(group_edge_betweenness())) %>% 
+  
+  # centrality das arestas
+  activate("edges") %>%
+  mutate( ebtwn = centrality_edge_betweenness() )
+
+ggraph(h, layout="kk") +
+  geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn, label=ebtwn), label_size=3) +
+  geom_node_point(aes(color=degree, size=clsn),alpha=0.5) +
+  geom_node_text(aes(label=name), color="black") +
+  geom_node_text(aes(label=eign, color=degree), nudge_y = -NUDGE_Y/2, size=2) +
+  theme_void() +
+  ggtitle( "Combinando Métricas" ) + 
+  scale_color_manual(breaks = c("1", "2","3", "5", "10"),
+                     values=c("red","red","lightskyblue","lightskyblue","darkblue"))
+```
+
+As várias medidas de centralidade são mostradas acima e são representadas:
+
+* Cor do vértice: Degree Centrality
+* Tamanho do vértice: Closeness Centrality
+* Número abaixo do vértice: Eiginvector Centrality
+* Cor e valor na aresta: Edge Betweenness Centrality
+
+```{r kptable}
+h %>% activate("nodes") %>%
+  as.tibble() %>%
+  select(-clst) %>%
+  knitr::kable(caption="Métricas de Centralidade dos Nós")
+```
+
+Através das relações entre as centralidades é possível identificar os seguintes aspectos
+
+* Nós mais conectados: **K** com mais conexões seguidas de **D** e **F**;
+* A ligação entre a **F** e **D** é a de maior *intermediação*, além disso se removida desconecta o gráfico;
+* Além disso, o nó **D** é o mais próximo aos demais e
+* O nó **K** é no mais referenciado por nós mas referenciados (maior *eigenvector*), seguido logo por **D**, mais uma vez mostrando a importância do no **D** na estrutura da rede.
+
+#### Gatekeepers & Accessors
+
+Combinando duas métricas de centralidade, autovetores e intermediação, é possível evidênciar dois tipos de atores específicos numa rede. 
+
+* Um ator com **alta intermediação** (*betweenness*) e **baixo autovetor** (*eigenvector*) pode ser um porteiro (_Gatekeeper_) importante para um ator central ou atores importantes.
+* Um ator com **baixa intermediação** e **alto autovetor** pode ter acesso exclusivo a atores centrais.
+
+```{r keysplayer}
+h %>% activate("nodes") %>% as_tibble() %>% 
+  ggplot(aes(x=btwn, y=eign)) + 
+  geom_point() + geom_label(aes(label=name)) +
+  theme( legend.position = "none" )
+```
+
+Observando a distribuição de como *eigenvector* fica em função *betweenness*, é possível observar então que o nó **F** atua como um *Gatekeeper* e o nó **C** como um nó de acesso a ators importantes (*accessor*).
+
+
+```{r}
+# key actors type
+h <- h %>%
+  activate("nodes") %>%
+  mutate( type = as.factor(case_when(
+    name == "F" ~ "gatekeeper",
+    name == "C" ~ "access to central actors",
+    TRUE ~ "others"
+  )))
+
+# plot
+ggraph(h, layout="kk") +
+  geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn), label_size=3, legend="none") +
+  geom_node_point(aes(color=type),alpha=0.9, size=8) +
+  geom_node_text(aes(label=name), color="white") +
+  geom_node_text(aes(label=eign), nudge_y = NUDGE_Y, size=3) +
+  theme_void() +
+  # ggtitle( "Gatekeeper and Accessor" ) + 
+  scale_color_manual(breaks = c("others","gatekeeper","access to central actors"),
+                     values=c("red","lightskyblue","darkblue"))
+
+```
+
+Podemos perceber que o nó **C** é o nó que "dá acesso" a nós de auta reputação (*eigenvector*) enquanto o nó **F**, é um nó de relativa baixa reputação que atua de porteiro para os nós de atua relevancia (D, K, E e C).
 
 ### Componentes
 
