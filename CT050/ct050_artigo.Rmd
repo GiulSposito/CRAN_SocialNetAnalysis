@@ -629,6 +629,33 @@ netMetrics$`717` %>%
 
 ```
 
+### Analisando colaboração recorrente
+
+Vamos analisar frequencia de publicação por autores, excluindo autores que contribuíram apenas uma vez.
+
+```{r}
+aut_list %>% 
+  select(packages) %>%
+  unlist() %>%
+  summary()
+```
+
+Observa-se que mais de 75% (3rd Quarter) dos autores contribuiram apenas 1 vez com outros autores, para estabelecer uma rede de colaboração mais efetiva (e não apenas momentânea), vamos filtrar na rede autores que  pelo menos 5 pacotes.
+
+```{r}
+h <- authors_network %>%
+  activate("nodes") %>%
+  filter( packages > 5 ) %>%
+  mutate( component = group_components() ) %>%
+  filter( component == names(table(component))[which.max(table(component))] ) 
+
+ggraph(h, layout="lgl") +
+  geom_edge_fan(alpha=0.1)+
+  geom_node_point(alpha=0.2, size=0.2) +
+  theme_void()
+```
+
+
 
 
 ## Notas e Referências
