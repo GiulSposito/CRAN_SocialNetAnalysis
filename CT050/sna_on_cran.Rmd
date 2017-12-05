@@ -1,5 +1,7 @@
 ---
 title: "SNA on CRAN Authors"
+author: "Giuliano Sposito"
+date: "Dezembro de 2017"
 output:
   html_document:
     df_print: paged

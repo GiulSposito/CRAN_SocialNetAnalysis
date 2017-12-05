@@ -29,11 +29,13 @@ needs(ggraph)    # visualizacoes de redes
 ## Components
 
 ```{r components}
+# montando uma lista de arestas (os números identificam o vértice)
 edgelist <- data.frame(
   from = c(1,1,2,4,2,3,4,5,6,6,7,7,8,8,9,10),
   to   = c(2,3,4,3,5,4,5,1,7,8,9,8,9,10,10,7)
 )
 
+# construindo o grafo a partid da lista de aresta
 edgelist %>%
   as.matrix() %>%
   graph.edgelist(directed = T) %>%
@@ -74,9 +76,8 @@ g_edgelist <- data.frame(
 g <- g_edgelist %>%
   as.matrix() %>%
   graph.edgelist(directed = FALSE) %>%
-  as_tbl_graph()
-
-g <- g %>% activate("nodes") %>%
+  as_tbl_graph() %>%
+  activate("nodes") %>%
   mutate( name = LETTERS[1:7] )
 
 g
@@ -169,7 +170,6 @@ ggraph(g_layout) +
 * Useful to determine who is connected to the most connected
 
 ```{r eigenvector}
-
 ggraph(g_layout) +
   geom_edge_fan(alpha=0.4) +
   geom_node_point(aes(color = eign), size=8) + 
@@ -178,7 +178,6 @@ ggraph(g_layout) +
   theme_graph() +
   ggtitle( "Eigenvector" ) + 
   theme( legend.position = "none" )
-
 ```
 
 
@@ -276,8 +275,8 @@ kable(nodes)
 
 One method is to plot eigenvector centrality on betweenness and examine the residuals
 
-* An actor with **high betweenness** and **low eigenvector** centrality may be an importante gatekeeper to a central actor
-* An actor with **low betweenness** and **high eigenvector** centrality may have unique access to central actors
+* An actor with **high betweenness** and **low eigenvector** centrality may be an importante gatekeeper to a central actor (F)
+* An actor with **low betweenness** and **high eigenvector** centrality may have unique access to central actors (C)
 
 ```{r keysplayer}
 h %>% activate("nodes") %>% as_tibble() %>% 
@@ -285,9 +284,6 @@ h %>% activate("nodes") %>% as_tibble() %>%
   geom_point() + geom_label(aes(label=name)) +
   theme( legend.position = "none" )
 ```
-
-gatekeepers: F
-access to central actors: C
 
 ```{r}
 

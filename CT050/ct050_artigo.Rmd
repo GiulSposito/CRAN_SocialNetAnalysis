@@ -1,5 +1,5 @@
 ---
-title: "Análise de Rede Social nos autores de pacotes do CRAN usando R"
+title: "Análise da Rede de Colaboração de Autores de Pacotes do CRAN usando R"
 author: "Giuliano Sposito"
 date: "Dezembro de 2017"
 output:
@@ -18,6 +18,10 @@ needs(tidyverse) # pipeline e manipulacao de dados
 needs(igraph)    # manipulacao de grafos
 needs(tidygraph) # visualizacoes de redes
 needs(ggraph)    # visualizacoes de redes
+
+# default nudge
+NUDGE_Y = 0.3
+
 ```
 
 Este artigo explora técnicas de *Análise de Redes Sociais* para analisar a rede de colaboração de autores de pacotes de análise para R[^1] publicados no CRAN[^2].
@@ -30,20 +34,18 @@ Este artigo explora técnicas de *Análise de Redes Sociais* para analisar a rede 
 
 Implicações do capital social poderiam ser:
 
-* Pessoas com uma rede pessoal _mais forte_ seriam mais produtivas, felizes e com melhor peformance
-* Companias que saibam gerenciar suas alianças são mais flexíveis, adaptativas e resilientes
+* Pessoas com uma rede pessoal _mais forte_ seriam mais produtivas, felizes e com melhor performance
+* Companhias que saibam gerenciar suas alianças são mais flexíveis, adaptativas e resilientes
 * O bem estar pessoal é frequentemente ligado ao convívio pessoal
 
 Usos e implicações do capital social e organização em redes para empresas:
 
-| Prática de Gestão  | Necessidade de negócio |
-|--------------------|------------------------|
-| Gestão de Talentos | Encontrar os líderes naturais na organização |
-| Inovação           | Identificar fronteiras. Garantir que a organização tenha acesso a novas idéias |
-| Colaboração        | Encontrar lacunas no conhecimento dentro de grupos, ou entre organizações ou geografias. Monitorar ou medir mudanças. |
-| Gestão do conhecimento | Identificar e manter conhecimentos vitais. Monitorar ou medir mudanças no conhecimento ou na troca de conhecimento |
-| Mudança Organizacional e Desenvolvimento | Encontrar líderes de opinião para iniciativas de gerenciamento de mudanças ou durante a integração após fusões e aquisições |
-| Desempenho Organizacional | Diagnosticar a coesão entre os membros da equipe e identificar conexões críticas para a melhoria. |
+* **Gestão de Talentos**: Encontrar os líderes naturais na organização |
+* **Inovação**: Identificar fronteiras. Garantir que a organização tenha acesso a novas idéias 
+* **Colaboração**: Encontrar lacunas no conhecimento dentro de grupos, ou entre organizações ou geografias. Monitorar ou medir mudanças. 
+* **Gestão do conhecimento**: Identificar e manter conhecimentos vitais. Monitorar ou medir mudanças no conhecimento ou na troca de conhecimento
+* **Mudança Organizacional e Desenvolvimento**: Encontrar líderes de opinião para iniciativas de gerenciamento de mudanças ou durante a integração após fusões e aquisições.
+* **Desempenho Organizacional**: Diagnosticar a coesão entre os membros da equipe e identificar conexões críticas para a melhoria.
 
 ### _Embeddeness_ (Estrutura)
 
@@ -72,8 +74,18 @@ g <- g_edgelist %>%
   activate("nodes") %>%
   mutate( name = LETTERS[1:7] ) # nomeando os nós
 
+# calculando previamente as métricas
+g <- g %>% 
+  mutate( degree = centrality_degree(), 
+          btwn   = round( centrality_betweenness(),2 ),
+          clsn   = round( centrality_closeness(normalized = T),2 ),
+          eign   = round( centrality_eigen(scale = F), 2 ))
+
+# fixando o layout previamente para todos os plots terem a mesma disposicao
+g_layout <- create_layout(g, layout = "kk")
+
 # plotando o graph
-ggraph(g, layout="lgl") +
+ggraph(g_layout) +
   geom_edge_fan(alpha=0.3) +
   geom_node_point(color="blue",alpha=0.8, size=8) +
   geom_node_text(aes(label=name), color="white") +
@@ -83,55 +95,125 @@ ggraph(g, layout="lgl") +
 
 ```
 
-Há uma série de métricas e propriedades de um grafo que podem fornecer informações relavantes sobre a relação (arestas) entre os indivíduos (vértices) e os próprios indivíduos quando esse representa uma rede social. Iremos explorar algumas propriedades que podem estar ligadas a identificação de capital social, são elas:
+
+Há uma série de métricas e propriedades de um grafo que podem fornecer informações relevantes sobre a relação (arestas) entre os indivíduos (vértices) e os próprios indivíduos quando esse representa uma rede social. Iremos explorar algumas propriedades que podem estar ligadas a identificação de capital social, são elas:
 
 * Degree Centrality
-* Betnweeness Centrality
-* Closness Centrality
+* Betweenness Centrality
+* Closeness Centrality
 * Eigenvector Centrality
 * Components
 * Density
 * Diameter
 * Eccentricy
 
-### Degree Centrality
+
+#### Degree Centrality (Grau)
 
 O Grau (_Degree_) é o número de arestas (ou links) que levam para dentro ou para fora de um vértice. Freqüentemente usado como medida de conexão de um nó para outros nós imediatos. Podendo assim representar influencia e/ou popularidade de um nó juntos aos demais. Útil na avaliação de quais nós são fundamentais em relação à disseminação de informações e na capacidade influenciar outros nós na localidade imediata.
 
+Exemplos:
+ * Quantas pessoas essa pessoa pode alcançar diretamente? 
+ * Em uma rede de músicos: com quantas pessoas essa pessoa já colaborou/tocou?
+
 ```{r degree}
-
-# calculando a métrica
-g <- g %>% 
-  mutate( degree = centrality_degree(), 
-          btwn = round(centrality_betweenness(),2),
-          clsn = round(centrality_closeness(normalized = T),2),
-          eign =round(centrality_eigen(scale = F), 2) )
-
-ggraph(g, layout="lgl") +
+# plot da rede evidenciando o degree
+ggraph(g_layout) +
   geom_edge_fan(alpha=0.4) +
   geom_node_point(aes(color = degree), size=8) + 
   geom_node_text(aes(label=name),color="white") +
-  geom_node_text(aes(label=degree, color=degree), nudge_y = 0.6 ) +
+  geom_node_text(aes(label=degree, color=degree), nudge_y = NUDGE_Y ) +
   theme_graph() +
-  ggtitle( "Degree" ) + 
+  # ggtitle( "Degree" ) + 
   theme( legend.position = "none" )
 
 ```
 
-### Betnweeness Centrality
 
-### Closeness Centrality
+#### Betweenness Centrality (Intermediação)
 
-### Eigenvector Centrality
+A *Betweenness Centrality* é uma métrica que representa quantos caminhos curtos (_shortest path_) que ligam outros nó da rede, passam pelo nó em questão. Para calcular o valor para um determinado nó **v**, calcule o número de caminhos mais curtos entre os nós **i** e **j** que passam através de **v** e divida por todos os caminhos mais curtos entre **i** e **j**. Repita para todo os nós.
+
+É uma medida importante, pois representa "o quanto" um nó, ou vértice, está dentro dos fluxos de informações possíveis entre os outros nós. Quanto mais alto o valor, maior a importância do nó, como um elo de comunicação entre os demais nós.
+
+Exemplos: 
+* Qual a probabilidade de esta pessoa ser a rota mais direta entre duas pessoas na rede?
+* Me uma rede de espiões: quem é o espião pela qual a maioria das informações confidenciais pode fluir?
+
+
+```{r Betweenness}
+
+# plot da rede evidenciando o betweenness
+ggraph(g_layout) +
+  geom_edge_fan(alpha=0.4) +
+  geom_node_point(aes(color = btwn), size=8) + 
+  geom_node_text(aes(label=name),color="white") +
+  geom_node_text(aes(label=btwn, color=btwn), nudge_y = NUDGE_Y ) +
+  theme_graph() +
+  # ggtitle( "Betweenness Centrality" ) + 
+  theme( legend.position = "none" )
+
+```
+
+
+#### Closeness Centrality (Proximidade)
+
+Representa o quão perto um nó está dos demais, pode ser uma medida direta da contagem de arestas ou da soma dos pesos dela. Para obtê-la calcule o comprimento médio de todos os caminhos mais curtos de um nó para todos os outros nós da rede.
+
+É uma medida de _alcance_, mediria por exemplo a velocidade com informações pode alcançar outros nós a partir de um determinado nó inicial, quanto mais próximo um nó dos demais, mais rápido este nó influenciaria outros.
+
+Exemplos:
+* Quão rápido essa pessoa pode alcançar todos na rede?
+* Em rede de relações sexuais: quão rápido uma DST se espalhará dessa pessoa para o resto da rede?
+
+```{r closeness}
+ggraph(g_layout) +
+  geom_edge_fan(alpha=0.4) +
+  geom_node_point(aes(color = clsn), size=8) + 
+  geom_node_text(aes(label=name),color="white") +
+  geom_node_text(aes(label=clsn, color=clsn), nudge_y = NUDGE_Y ) +
+  theme_graph() +
+  # ggtitle( "Closeness" ) + 
+  theme( legend.position = "none" )
+```
+
+
+#### Eigenvector Centrality (Autovetor)
+
+A centralidade do _autovetores_ de um nó é proporcional à soma das centralidades de _autovetores de todos os nós diretamente conectados a ele. A métrica é obtida através da fatoração e calculo de autovetores da _matriz de adjacência_[^3] que representa a rede.
+
+Está associado a reputação e um vértice com respeito às suas ligações.
+
+Exemplos: 
+* Quão bem esta pessoa está conectada a outras pessoas bem conectadas?
+* Na rede de citações de artigos: quem é o autor mais citado por outros autores bem citados?
+
+```{r eigenvector}
+ggraph(g_layout) +
+  geom_edge_fan(alpha=0.4) +
+  geom_node_point(aes(color = eign), size=8) + 
+  geom_node_text(aes(label=name),color="white") +
+  geom_node_text(aes(label=eign, color=eign), nudge_y = NUDGE_Y ) +
+  theme_graph() +
+  # ggtitle( "Eigenvector" ) + 
+  theme( legend.position = "none" )
+```
+
 
 ### Gatekeepers & Accessors
+
+
+
+
 
 ### Componentes
 
 ## Rede de Colaboração de Autores no CRAN
 
-## Referências
+## Notas e Referências
 
-[^1]: [R](https://www.r-project.org/) é uma linguagem de programação e ambiente para computação e análise estatística, de uso gratuíto e que que fornece uma ampla variedade de técnicas  para: modelagem linear e não-linear, testes estatísticos, análise de séries temporais, classificação, agrupamento. 
+[^1]: [R](https://www.r-project.org/) é uma linguagem de programação e ambiente para computação e análise estatística, de uso gratuito e que que fornece uma ampla variedade de técnicas  para: modelagem linear e não-linear, testes estatísticos, análise de séries temporais, classificação, agrupamento. 
 
-[^2]: [CRAN](https://cran.r-project.org/) ou _Comprehensive R Archive Network_ é uma rede de ftp e servidores web ao redor do mundo que armazenam versões de código e documentação atualizadas para pacotes e bibliotecas para R. 
+[^2]: [CRAN](https://cran.r-project.org/) ou _Comprehensive R Archive Network_ é uma rede de FTP e servidores web ao redor do mundo que armazenam versões de código e documentação atualizadas para pacotes e bibliotecas para R. 
+
+[^3]: Matrix que vértices contra vértices cuja as células indica o peso ou a ligação entre os vértices.
