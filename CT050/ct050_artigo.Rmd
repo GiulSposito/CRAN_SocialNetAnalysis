@@ -87,7 +87,8 @@ Há uma série de métricas e propriedades de um grafo que podem fornecer informaçõ
 O Grau (_Degree_) é o número de arestas (ou links) que levam para dentro ou para fora de um vértice. Freqüentemente usado como medida de conexão de um nó para outros nós imediatos. Podendo assim representar influencia e/ou popularidade de um nó juntos aos demais. Útil na avaliação de quais nós são fundamentais em relação à disseminação de informações e na capacidade influenciar outros nós na localidade imediata.
 
 Exemplos:
-* Quantas pessoas essa pessoa pode alcançar diretamente? 
+
+* Quantas pessoas essa pessoa pode alcançar diretamente?
 * Em uma rede de músicos: com quantas pessoas essa pessoa já colaborou/tocou?
 
 ```{r degree}
@@ -112,7 +113,8 @@ A *Betweenness Centrality* é uma métrica que representa quantos caminhos curtos 
 
 Esta métrica também pode ser calculada com respeito a uma aresta, assim estaríamos medindo o quanto um link entre dos nós participa dos caminhos mais curtos entre os nós da rede.
 
-Exemplos: 
+Exemplos:
+
 * Qual a probabilidade de esta pessoa ser a rota mais direta entre duas pessoas na rede?
 * Me uma rede de espiões: quem é o espião pela qual a maioria das informações confidenciais pode fluir?
 
@@ -139,6 +141,7 @@ Representa o quão perto um nó está dos demais, pode ser uma medida direta da con
 É uma medida de _alcance_, mediria por exemplo a velocidade com informações pode alcançar outros nós a partir de um determinado nó inicial, quanto mais próximo um nó dos demais, mais rápido este nó influenciaria outros.
 
 Exemplos:
+
 * Quão rápido essa pessoa pode alcançar todos na rede?
 * Em rede de relações sexuais: quão rápido uma DST se espalhará dessa pessoa para o resto da rede?
 
@@ -286,8 +289,8 @@ Através das relações entre as centralidades é possível identificar os seguintes 
 
 * Nós mais conectados: **K** com mais conexões seguidas de **D** e **F**;
 * A ligação entre a **F** e **D** é a de maior *intermediação*, além disso se removida desconecta o gráfico;
-* Além disso, o nó **D** é o mais próximo aos demais e
-* O nó **K** é no mais referenciado por nós mas referenciados (maior *eigenvector*), seguido logo por **D**, mais uma vez mostrando a importância do no **D** na estrutura da rede.
+* O nó **D** é o mais próximo aos demais e
+* O nó **K** é no mais referenciado por nós mais referenciados (maior *eigenvector*), seguido logo por **D**, mais uma vez mostrando a importância do no **D** na estrutura da rede.
 
 #### Gatekeepers & Accessors
 
