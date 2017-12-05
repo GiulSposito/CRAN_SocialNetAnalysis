@@ -179,7 +179,7 @@ ggraph(g_layout) +
 
 #### Componentes
 
-Um rede pode ter ser segmentada, ou seja, nós formam subredes não conectadas entre si, tais subredes são chamadas de componentes.
+Um rede pode ter ser segmentada, ou seja, nós formam sub-redes não conectadas entre si, tais sub-redes são chamadas de componentes.
 
 ```{r components}
 # montando uma lista de arestas (os números identificam o vértice)
@@ -211,7 +211,7 @@ ggraph(g, layout="kk") +
 
 ### Identificando Atores e Padrões
 
-Usando as métricas listadas acima é possível identificar e classificar a atuação e importancia dos atores em uma rede.
+Usando as métricas listadas acima é possível identificar e classificar a atuação e importância dos atores em uma rede.
 
 Tome-se como exemplo esta rede:
 
@@ -272,7 +272,7 @@ As várias medidas de centralidade são mostradas acima e são representadas:
 
 * Cor do vértice: Degree Centrality
 * Tamanho do vértice: Closeness Centrality
-* Número abaixo do vértice: Eiginvector Centrality
+* Número abaixo do vértice: Eigenvetor Centrality
 * Cor e valor na aresta: Edge Betweenness Centrality
 
 ```{r kptable}
@@ -291,7 +291,7 @@ Através das relações entre as centralidades é possível identificar os seguintes 
 
 #### Gatekeepers & Accessors
 
-Combinando duas métricas de centralidade, autovetores e intermediação, é possível evidênciar dois tipos de atores específicos numa rede. 
+Combinando duas métricas de centralidade, autovetores e intermediação, é possível evidenciar dois tipos de atores específicos numa rede. 
 
 * Um ator com **alta intermediação** (*betweenness*) e **baixo autovetor** (*eigenvector*) pode ser um porteiro (_Gatekeeper_) importante para um ator central ou atores importantes.
 * Um ator com **baixa intermediação** e **alto autovetor** pode ter acesso exclusivo a atores centrais.
@@ -303,7 +303,7 @@ h %>% activate("nodes") %>% as_tibble() %>%
   theme( legend.position = "none" )
 ```
 
-Observando a distribuição de como *eigenvector* fica em função *betweenness*, é possível observar então que o nó **F** atua como um *Gatekeeper* e o nó **C** como um nó de acesso a ators importantes (*accessor*).
+Observando a distribuição de como *eigenvector* fica em função *betweenness*, é possível observar então que o nó **F** atua como um *Gatekeeper* e o nó **C** como um nó de acesso a atores importantes (*accessor*).
 
 
 ```{r nodetypes}
@@ -329,11 +329,11 @@ ggraph(h, layout="kk") +
 
 ```
 
-Podemos perceber que o nó **C** é o nó que "dá acesso" a nós de auta reputação (*eigenvector*) enquanto o nó **F**, é um nó de relativa baixa reputação que atua de porteiro para os nós de atua relevancia (D, K, E e C).
+Podemos perceber que o nó **C** é o nó que "dá acesso" a nós de alta reputação (*eigenvector*) enquanto o nó **F**, é um nó de relativa baixa reputação que atua de porteiro para os nós de atua relevância (D, K, E e C).
 
 #### Comunidades (_clusters_)
 
-Muitas redes consistem em módulos que estão densamente conectados, mas que estão escassamente conectados a outros módulos, a esses módulos é dado o nome de *comunidade*. A idéia da detecção de estrutura de comunidade é descobrir "bordas" e detectar arestas quem ligam módulos separados. 
+Muitas redes consistem em módulos que estão densamente conectados, mas que estão escassamente conectados a outros módulos, a esses módulos é dado o nome de *comunidade*. A ideia da detecção de estrutura de comunidade é descobrir "bordas" e detectar arestas quem ligam módulos separados. 
 
 Uma estratégia é calcular a centralidade de betweenness das arestas e ir removendo gradualmente as arestas de maior pontuação, desconectando o gráfico, identificando assim as comunidades.
 
@@ -352,7 +352,7 @@ ggraph(h, layout="kk") +
 
 CRAN[^2] é o repositório oficial de pacotes de R, [listando](https://cran.r-project.org/web/packages/available_packages_by_name.html) todos os pacotes produzido e disponibilizado gratuitamente pela comunidade de usuário e programadores. Os pacotes fornece funcionalidades adicionais ou específicas para o R e para serem utilizados devem ser copiados, instalados e carregados. 
 
-Qualquer pessoa pode desenvolver e disponibilizar pacotes, porém é mais comum que os pacotes sejam desenvolvidos por equipes de pesquisa e grupos de programadores dentro de empresas ou universidades ou que sejam um desenvolvimento que segue a dinâmica de software _open source_, quando o código do pacote está público e recebe contribuição de vários desenvolvidores espalhados pelo mundo.
+Qualquer pessoa pode desenvolver e disponibilizar pacotes, porém é mais comum que os pacotes sejam desenvolvidos por equipes de pesquisa e grupos de programadores dentro de empresas ou universidades ou que sejam um desenvolvimento que segue a dinâmica de software _open source_, quando o código do pacote está público e recebe contribuição de vários desenvolvedores espalhados pelo mundo.
 
 ![Autores de um pacote R](./images/xgb_package.png)
 
@@ -427,7 +427,7 @@ total_edges <- authors_network %>% activate("edges") %>% as.tibble() %>% nrow()
 
 ### Selecionando Components
 
-A rede construída é composta de `r total_authors` autores que se relacionam através `r total_edges` arestas. Dado a natureza do objeto estudado espera-se que essa rede não seja conecta integralmente, formando então **componentes** de colaboração entre grupos de autores distintos, vamos analisar esse aspécto.
+A rede construída é composta de `r total_authors` autores que se relacionam através `r total_edges` arestas. Dado a natureza do objeto estudado espera-se que essa rede não seja conecta integralmente, formando então **componentes** de colaboração entre grupos de autores distintos, vamos analisar esse aspecto.
 
 ```{r whichcomponents}
 
@@ -490,7 +490,7 @@ knitr::kable(net_metrics)
 ```
 
 
-Para cada um dos components calculamos:
+Para cada um dos componentes calculamos:
 
 * **densidade**: número de arestas da rede dividido pelo número de arestas possíveis;
 * **diâmetro**: maior menor caminho (_shortest path_) existente na rede e
@@ -631,7 +631,7 @@ netMetrics$`717` %>%
 
 ### Analisando colaboração recorrente
 
-Vamos analisar frequencia de publicação por autores, excluindo autores que contribuíram apenas uma vez.
+Vamos analisar frequência de publicação por autores, excluindo autores que contribuíram apenas uma vez.
 
 ```{r}
 aut_list %>% 
@@ -640,7 +640,7 @@ aut_list %>%
   summary()
 ```
 
-Observa-se que mais de 75% (3rd Quarter) dos autores contribuiram apenas 1 vez com outros autores, para estabelecer uma rede de colaboração mais efetiva (e não apenas momentânea), vamos filtrar na rede autores que  pelo menos 5 pacotes.
+Observa-se que mais de 75% (3rd Quarter) dos autores contribuíram apenas 1 vez com outros autores, para estabelecer uma rede de colaboração mais efetiva (e não apenas momentânea), vamos filtrar na rede autores que  pelo menos 5 pacotes.
 
 ```{r majorcomp}
 # obtendo a rede de colaboradores com mais de 5 publicações
@@ -699,7 +699,7 @@ authors <- h %>%
 knitr::kable( head(authors, 10), caption = "Principais Autores, pelo critério de betweeness. (top 10)")
 ```
 
-Podemos notar que a lista tráz de fato, autores influentes na comunidade de desenvolvimento R, como [Hadley Wickham](http://hadley.nz/) (cientista Chefe na empresa RStudio), [Martin Maechler](https://stat.ethz.ch/~maechler/) (estatístico suíço na ETH) e [Jeffrey Horner](http://biostat.mc.vanderbilt.edu/wiki/Main/JeffreyHorner) (Developer no departamento de bio estatística da universidade Vanderbuilt). Importante notar que este último, possue alto **betweeness* mas relativamente pouco grau (*degree*) comparado aos autores da lista.
+Podemos notar que a lista trás de fato, autores influentes na comunidade de desenvolvimento R, como [Hadley Wickham](http://hadley.nz/) (cientista Chefe na empresa RStudio), [Martin Maechler](https://stat.ethz.ch/~maechler/) (estatístico suíço na ETH) e [Jeffrey Horner](http://biostat.mc.vanderbilt.edu/wiki/Main/JeffreyHorner) (Developer no departamento de bio estatística da universidade Vanderbuilt). Importante notar que este último, possui alto **betweeness* mas relativamente pouco grau (*degree*) comparado aos autores da lista.
 
 Vamos visualizar os autores na rede.
 
@@ -749,16 +749,46 @@ clusters <- h %>%
   summarise( authors = n() ) %>%
   arrange( desc(authors) )
 
-total_clusers <- nrow(clusters)
+total_clusters <- nrow(clusters)
 
 knitr::kable( head(clusters, 10), caption = "Comunidades de Autores dentro da Rede" )
   
 ```
-Encontramos `r total_clusters` comunidades dentro da rede, dos quais duas se destacam pelo número de colaboradores bem acima 
+Encontramos `r total_clusters` comunidades dentro da rede, dos quais duas se destacam pelo número de colaboradores bem acima dos demais. Vamos visualizar algumas comunidades sobre a estrutura da rede.
+
+```{r mcplotcommunities}
+
+h <- h %>%
+  activate("nodes") %>%
+  mutate ( 
+    community = as.factor(
+      case_when(
+        clst == 4 ~ "Comunidade 4",
+        clst == 3 ~ "Comunidade 3",
+        clst == 63 ~ "Comunidade 63",
+        clst == 9 ~ "Comunidade 9",
+        TRUE ~ "Others"
+      )
+    )
+  )
+
+
+ggraph(h, layout="lgl") +
+  geom_edge_fan(alpha=0.1)+
+  geom_node_point(aes(color=community, size=packages),alpha=0.8) +
+  theme_void() +
+  scale_color_manual(breaks = c("Comunidade 4","Comunidade 3","Comunidade 63","Comunidade 9" ,"Others"),
+                     values=c("red","skyblue","green","orange","grey"))
+
+```
+
+Claramente podemos observar a organização dos clusters dentro da estrutura. Cada um dos clusters poderiam ser separados da estrutura e analisados à parte, aplicando novamente as métricas de centralidade para evidenciar os seus atores principais e sua dinâmica de integração.
 
 ## Conclusão
 
-Vimos que as técnicas de 
+Vimos que as técnicas de análise de grafo são relevante para identificar os principais autores de uma rede, analisar a estrutura e identificar padrões. Particularmente em estruturas muito complexas e com muitos atores as métricas de centralidade evidenciam atores, padrões e comportamento com clareza.
+
+Além disso o carácter _reproduzível da análise_[^5] feita em R permite refinar continuamente a análise, eliminando resíduos e apurando os resultados
 
 ## Notas e Referências
 
@@ -768,4 +798,6 @@ Vimos que as técnicas de
 
 [^3]: Matriz de vértices contra vértices cuja as células indica o peso ou a ligação entre os vértices.
 
-[^4]: Escolhi analisando a formato das redes e escolhendo três casos distintos, excluindo o primeiro caso que possue muitos vértices para ser plotado.
+[^4]: Escolhi analisando a formato das redes e escolhendo três casos distintos, excluindo o primeiro caso que possui muitos vértices para ser plotado.
+
+[^5]: _Reproducible Research_ ou **pesquisa reproduzível** é a ideia de que a análise de dados e, em geral, as alegações científicas, são publicados com seus dados e código de software para que outros possam verificar as descobertas e construir sobre elas.
