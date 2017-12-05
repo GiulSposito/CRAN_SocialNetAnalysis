@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 # library setup
 library(needs)
+needs(data.table)
 needs(stringr)   # limpeza e tratamento de strings
 needs(tidyverse) # pipeline e manipulacao de dados
 needs(igraph)    # manipulacao de grafos
@@ -305,7 +306,7 @@ h %>% activate("nodes") %>% as_tibble() %>%
 Observando a distribuição de como *eigenvector* fica em função *betweenness*, é possível observar então que o nó **F** atua como um *Gatekeeper* e o nó **C** como um nó de acesso a ators importantes (*accessor*).
 
 
-```{r}
+```{r nodetypes}
 # key actors type
 h <- h %>%
   activate("nodes") %>%
@@ -317,7 +318,7 @@ h <- h %>%
 
 # plot
 ggraph(h, layout="kk") +
-  geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn), label_size=3, legend="none") +
+  geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn), label_size=3) +
   geom_node_point(aes(color=type),alpha=0.9, size=8) +
   geom_node_text(aes(label=name), color="white") +
   geom_node_text(aes(label=eign), nudge_y = NUDGE_Y, size=3) +
@@ -330,9 +331,305 @@ ggraph(h, layout="kk") +
 
 Podemos perceber que o nó **C** é o nó que "dá acesso" a nós de auta reputação (*eigenvector*) enquanto o nó **F**, é um nó de relativa baixa reputação que atua de porteiro para os nós de atua relevancia (D, K, E e C).
 
-### Componentes
+#### Comunidades (_clusters_)
+
+Muitas redes consistem em módulos que estão densamente conectados, mas que estão escassamente conectados a outros módulos, a esses módulos é dado o nome de *comunidade*. A idéia da detecção de estrutura de comunidade é descobrir "bordas" e detectar arestas quem ligam módulos separados. 
+
+Uma estratégia é calcular a centralidade de betweenness das arestas e ir removendo gradualmente as arestas de maior pontuação, desconectando o gráfico, identificando assim as comunidades.
+
+```{r community}
+ggraph(h, layout="kk") +
+   geom_edge_fan2(alpha=0.5, aes(edge_colour = ebtwn)) +
+  geom_node_point(aes(color=clst),alpha=0.9, size=8) +
+  geom_node_text(aes(label=name), color="white") +
+  # ggtitle( "Community / Clusters" ) + 
+  theme_void() + 
+  theme( legend.position = "none" )
+```
+
 
 ## Rede de Colaboração de Autores no CRAN
+
+CRAN[^2] é o repositório oficial de pacotes de R, [listando](https://cran.r-project.org/web/packages/available_packages_by_name.html) todos os pacotes produzido e disponibilizado gratuitamente pela comunidade de usuário e programadores. Os pacotes fornece funcionalidades adicionais ou específicas para o R e para serem utilizados devem ser copiados, instalados e carregados. 
+
+Qualquer pessoa pode desenvolver e disponibilizar pacotes, porém é mais comum que os pacotes sejam desenvolvidos por equipes de pesquisa e grupos de programadores dentro de empresas ou universidades ou que sejam um desenvolvimento que segue a dinâmica de software _open source_, quando o código do pacote está público e recebe contribuição de vários desenvolvidores espalhados pelo mundo.
+
+![Autores de um pacote R](./images/xgb_package.png)
+
+O pacote publicado contém uma lista de autores, que contribuíram para construir e publicar o pacote. O objetivo desta análise entender como se organiza a rede de colaboração de autores, para isso usaremos os dados de publicação para construir uma rede, onde cada vértice da rede é um ator e uma aresta identifica um pacote em que dois (ou mais autores) colaboraram juntos.
+
+### Construindo a Rede
+
+```{r crandata, cache=TRUE}
+
+# dados de publicacao de pacotes
+pdb <- tools::CRAN_package_db()
+
+# campo de autores dos pacotes
+pbaut <- pdb$Author 
+
+# o campo de autores é uma string separada por virgula e contendo outras informações
+# é necessario limpar a string e separar os nome dos atuores
+aut <- pbaut %>%
+  str_replace_all("\\[.*?\\]", "") %>%
+  str_replace_all("[\\n\\t]", "") %>%
+  str_replace_all("\\<.*?\\>", "") %>%
+  str_replace_all("\\(.*?\\)", "") %>% 
+  str_replace_all("\\(([^)]+)\\)", "") %>% # remocao 
+  str_replace_all("\\[([^]]+)\\]", "") %>% # remocao
+  str_replace_all("<([^>]+)>", "") %>% # remocao
+  str_replace_all("\n", " ") %>% # remocao
+  str_replace_all("[Cc]ontribution.* from|[Cc]ontribution.* by|[Cc]ontributors", " ") %>%
+  str_replace_all("\\(|\\)|\\[|\\]", " ") %>% # remocao
+  iconv(to = "ASCII//TRANSLIT") %>% # limpeza dos caracters especiais
+  str_replace_all("'$|^'", "") %>%  # limpeza
+  gsub("([A-Z])([A-Z]{1,})", "\\1\\L\\2", ., perl = TRUE) %>% 
+  gsub("\\b([A-Z]{1}) \\b", "\\1\\. ", .) %>%
+  map(str_split, ",|;|&| \\. |--|(?<=[a-z])\\.| [Aa]nd | [Ww]ith | [Bb]y ", simplify = TRUE) %>% 
+  map(str_replace_all, "[[:space:]]+", " ") %>% 
+  map(str_replace_all, " $|^ | \\.", "") %>% 
+  map(function(x) x[str_length(x) != 0]) %>%
+  set_names(pdb$Package) %>% 
+  magrittr::extract(map_lgl(., function(x) length(x) > 1))
+
+# conta autores por pacote
+aut_list <- aut %>%
+  unlist() %>%
+  dplyr::as_data_frame() %>%
+  count(value) %>%
+  rename(name = value, packages = n)
+
+# transforma a lista "pacote" -> [autores] em uma edge list
+edge_list <- aut %>%
+  map(combn, m = 2) %>%    # em cada pacote (map) gera uma combinacao do array de autores dois a dois
+  do.call("cbind", .) %>%  
+  t() %>%
+  dplyr::as_data_frame() %>%
+  arrange(V1, V2) %>%
+  count(V1, V2) 
+
+# controi a rede a partir da lista de arestas
+authors_network <- edge_list %>%
+  select(V1, V2) %>%
+  as.matrix() %>%
+  graph.edgelist(directed = FALSE) %>%
+  as_tbl_graph() %>%    # wrapper tidygraph para o objeto igraph
+  activate("edges") %>% 
+  mutate(weight = edge_list$n) %>% # resgata o peso das arestas (# de pacotes)
+  activate("nodes") %>%
+  left_join(aut_list, by="name") # nomeia os nós com os nomes dos autores
+
+# dados de autores e arestas
+total_authors <- authors_network %>% activate("nodes") %>% as.tibble() %>% nrow()
+total_edges <- authors_network %>% activate("edges") %>% as.tibble() %>% nrow()
+
+```
+
+### Selecionando Components
+
+A rede construída é composta de `r total_authors` autores que se relacionam através `r total_edges` arestas. Dado a natureza do objeto estudado espera-se que essa rede não seja conecta integralmente, formando então **componentes** de colaboração entre grupos de autores distintos, vamos analisar esse aspécto.
+
+```{r whichcomponents}
+
+# identifica os components
+g <- authors_network %>% 
+  activate("nodes") %>%  
+  mutate(component = as.factor(group_components()))
+
+# tabela components por número de autores
+authors.by.components <- g %>% 
+  activate("nodes") %>%
+  as.tibble() %>%
+  group_by(component) %>%
+  summarise( authors=n() ) %>%
+  arrange( desc(authors) )
+
+# top 10 maiores components
+knitr::kable(head(authors.by.components,10), caption = "Maiores componentes (top 10)")
+```
+
+Vamos selecionar três destes componentes para caracterizá-los: componentes 30, 33 e 717[^4].
+
+### Comparando os três components
+
+```{r plotcomponents}
+
+sel_components <- c(30,33,717)
+
+# plotando os components
+g %>%
+  filter( component %in% sel_components ) %>%
+  ggraph(layout="auto") +
+  geom_edge_fan(alpha=0.2)+
+  geom_node_point(aes(color=component),alpha=0.8, size=2) +
+  theme_void()
+
+```
+
+Nota-se que os componentes possuem estruturas distintas umas das outras, vamos caracterizá-las com métricas de rede.
+
+```{r compnetworks}
+
+# para cada um do componentes escolhidos
+net_metrics <- rbindlist(lapply( sel_components, function(comp){
+  # filtra pelo component
+  h <- g %>% filter( component == comp )
+  # calcula metricas de rede
+  res <- data.frame(
+    component = comp,
+    nodes     = h %>% activate("nodes") %>% as.tibble() %>% nrow(),
+    density   = round(graph.density(h, loops = F),4),
+    diameter  = diameter(h, directed = F, unconnected = F, weights = NULL),
+    eccentricity = max(eccentricity(h, mode="all"))/min(eccentricity(h, mode="all"))
+  )
+  return(res)
+}))
+
+# tabela
+knitr::kable(net_metrics)
+```
+
+
+Para cada um dos components calculamos:
+
+* **densidade**: número de arestas da rede dividido pelo número de arestas possíveis;
+* **diâmetro**: maior menor caminho (_shortest path_) existente na rede e
+* **excentricidade**: aqui definida como o diâmetro dividido pelo menor caminho (_shortest path_).
+
+Nota-se nos valores que as redes de fato são distintas nessas dimensões.
+
+### analise de atores 
+
+```{r actorscentrality}
+# calcula centralidades para uma rede
+calcNodeMetrics <- function(net, comp){
+  net %>%
+    activate("nodes") %>%
+    filter( component==comp ) %>%
+    mutate(
+      degree = centrality_degree(),
+      btwn = round(centrality_betweenness(), 2),
+      clsn = round(centrality_closeness(normalized = T), 2),
+      eign = round(centrality_eigen(scale = T), 2),
+      clst = as.factor(group_edge_betweenness())
+    ) %>%
+    activate("edges") %>%
+    mutate( ebtwn = centrality_edge_betweenness() ) %>%
+    return()
+}
+
+# para cada um dos componentes, faz o calculo de centralidades
+netMetrics <- lapply(sel_components, function(comp) calcNodeMetrics(g,comp) )
+netMetrics <- setNames(netMetrics, sel_components)
+
+```
+
+#### Component 30
+
+```{r comp30, cache=T}
+ggraph(netMetrics$`30`, layout="kk") +
+  geom_edge_fan2(alpha=0.2, aes(edge_colour = ebtwn)) +
+  geom_node_point(aes(color=btwn, size=degree),alpha=0.9) +
+  theme_void() %>% +
+  theme( legend.position = "none" ) + 
+  ggtitle( "Componente 30" )
+```
+
+Numa rede totalmente conectada (densidade = 1), todos os nós e arestas tem as mesmas métricas, não é possível selecionar um (ou mais autores) como mais influente ou relação mais importante, a rede é homogênea. Este componente é composto de autores de um só pacote ([rcorpora](https://cran.r-project.org/web/packages/rcorpora/index.html)), cujo os autores não trabalharam com nenhum outro conjunto de autores.
+
+#### Componente 33
+
+```{r comp33plot1}
+  ggraph(netMetrics$`33`, layout="kk") +
+    geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn)) +
+    geom_node_point(aes(color=btwn, size=btwn),alpha=0.9) +
+    theme_void() + 
+    theme( legend.position = "none" ) + 
+    ggtitle( "Componente 33 - Betweenness" )
+```
+
+```{r comp33table1}
+netMetrics$`33` %>%
+  activate("nodes") %>%
+  as.tibble() %>%
+  arrange( desc(btwn), desc(degree), desc(eign), desc(clsn) ) %>%
+  select(-component, -clst) %>%
+  head(10) %>%
+  knitr::kable(caption = "Autores por Betweeness (10 mais)")
+
+```
+
+A rede do componente 33 já é bem menos acoplada, portanto de menor densidade, é possível visualizar os autores mais bem "relacionados" e os autores que atuam com "pontes" entre os diversos nós na estrutura. Isso é reflexo de quando o autor trabalha em momentos diferentes com outros grupos de autores em pacotes diferentes.
+
+
+```{r comp33plot2}
+ggraph(netMetrics$`33`, layout="kk") +
+  geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn)) +
+  geom_node_point(aes(color=eign, size=eign),alpha=0.9) +
+  theme_void() + 
+  theme( legend.position = "none" ) + 
+  ggtitle( "Componente 33 - Eigenvector Centrality" )
+```
+
+```{r comp33table2}
+netMetrics$`33` %>%
+  activate("nodes") %>%
+  as.tibble() %>%
+  arrange( desc(eign), desc(degree), desc(btwn), desc(clsn) ) %>%
+  select(-packages, -component, -clst) %>%
+  head(10) %>%
+  knitr::kable( caption="Autores por Eigenvector (10 mais)")
+
+```
+
+#### Componente 717
+
+O componente 717 tem uma estrutura mais acoplada, com uma densidade de 0,23, intermediária entre a 30 e 33, é possível observar grupos que trabalham juntos e grande autor central conectando os subgrupos.
+
+```{r comp717plot1}
+  ggraph(netMetrics$`717`, layout="kk") +
+    geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn)) +
+    geom_node_point(aes(color=btwn, size=btwn),alpha=0.9) +
+    theme_void() + 
+    theme( legend.position = "none" ) + 
+    ggtitle( "Componente 717 - Betweenness" )
+```
+
+```{r comp717table1}
+netMetrics$`717` %>%
+  activate("nodes") %>%
+  as.tibble() %>%
+  arrange( desc(btwn), desc(degree), desc(eign), desc(clsn) ) %>%
+  select(-component, -clst) %>%
+  head(10) %>%
+  knitr::kable(caption = "Autores por Betweeness (10 mais)")
+
+```
+
+Podemos observar, de fato, que o autor central [Quanli Wang](https://www.linkedin.com/in/quanli-wang-5645a01b/) trabalhou em 7 pacotes diferente, servindo de pontes para os vários subgrupos presente neste componente. Como ele é o único autor ligando esses subgrupos ele também é o mais bem "referenciado".
+
+```{r comp717plot2}
+ggraph(netMetrics$`717`, layout="kk") +
+  geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn)) +
+  geom_node_point(aes(color=eign, size=eign),alpha=0.9) +
+  theme_void() + 
+  theme( legend.position = "none" ) + 
+  ggtitle( "Componente 717 - Eigenvector Centrality" )
+```
+
+
+```{r comp717table2}
+netMetrics$`717` %>%
+  activate("nodes") %>%
+  as.tibble() %>%
+  arrange( desc(eign), desc(degree), desc(btwn), desc(clsn) ) %>%
+  select(-packages, -component, -clst) %>%
+  head(10) %>%
+  knitr::kable( caption="Autores por Eigenvector (10 mais)")
+
+```
+
+
 
 ## Notas e Referências
 
@@ -340,4 +637,6 @@ Podemos perceber que o nó **C** é o nó que "dá acesso" a nós de auta reputação (
 
 [^2]: [CRAN](https://cran.r-project.org/) ou _Comprehensive R Archive Network_ é uma rede de FTP e servidores web ao redor do mundo que armazenam versões de código e documentação atualizadas para pacotes e bibliotecas para R. 
 
-[^3]: Matrix que vértices contra vértices cuja as células indica o peso ou a ligação entre os vértices.
+[^3]: Matriz de vértices contra vértices cuja as células indica o peso ou a ligação entre os vértices.
+
+[^4]: Escolhi analisando a formato das redes e escolhendo três casos distintos, excluindo o primeiro caso que possue muitos vértices para ser plotado.
