@@ -2,7 +2,9 @@
 title: "Análise da Rede de Colaboração de Autores de Pacotes do CRAN usando R"
 author: "Giuliano Sposito"
 date: "Dezembro de 2017"
+csl: associacao-brasileira-de-normas-tecnicas.csl
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
@@ -39,17 +41,17 @@ Este artigo explora técnicas de *Análise de Redes Sociais* para analisar o compo
 
 ### Redes Sociais
 
-O trabalho em rede tem se tornado cada vez mais uma maneira de organização humana presente em nossas vidas e nos mais diferentes níveis da estrutura das empresas modernas. "Os indivíduos, dotados de recursos e capacidades propositivas, organizam suas ações nos próprios espaços políticos em função de socializações e mobilizações suscitadas pelo próprio desenvolvimento das redes". [^6]
+O trabalho em rede tem se tornado cada vez mais uma maneira de organização humana presente em nossas vidas e nos mais diferentes níveis da estrutura das empresas modernas. "Os indivíduos, dotados de recursos e capacidades propositivas, organizam suas ações nos próprios espaços políticos em função de socializações e mobilizações suscitadas pelo próprio desenvolvimento das redes". [@MALETO 2001]
 
-A dinâmica das redes funciona por meio de atividades relacionadas ao compartilhamento de valores e de idéias em comunidades, e em sua representação gráfica em que cada ator é representada por um nó, e as relações são representadas por linhas que conectam os nós.[^7]
+A dinâmica das redes funciona por meio de atividades relacionadas ao compartilhamento de valores e de idéias em comunidades, e em sua representação gráfica em que cada ator é representada por um nó, e as relações são representadas por linhas que conectam os nós.[@storch2008]
 
-Analisar estas redes resume-se em estudar as ligações relacionais entre atores sociais. Estes atores, tanto podem ser pessoas e empresas individualmente ou coletivamente analisadas em unidades sociais, como por exemplo, departamento de uma organização, prestadoras de serviço público em um município ou estados-nação em um continente.[^8] 
+Analisar estas redes resume-se em estudar as ligações relacionais entre atores sociais. Estes atores, tanto podem ser pessoas e empresas individualmente ou coletivamente analisadas em unidades sociais, como por exemplo, departamento de uma organização, prestadoras de serviço público em um município ou estados-nação em um continente.[@wasserman1994] 
 
 ### Vantagens Competitivas da Rede
 
-O acesso à informação é um elemento-chave para o desenvolvimento econômico e social de comunidades, grupos sociais e indivíduos. A capacidade de obter informações, além dos contornos restritos da própria localidade, é parte do capital relacional dos indivíduos e grupos.[^11]
+O acesso à informação é um elemento-chave para o desenvolvimento econômico e social de comunidades, grupos sociais e indivíduos. A capacidade de obter informações, além dos contornos restritos da própria localidade, é parte do capital relacional dos indivíduos e grupos.[@marteleto2004]
 
-O capital social, definido como o conjunto de vantagens obtida da rede de relacionamento, pode ser considerado como capital humano ou financeiro, investimentos para sua ampliação devem permitir retornos ou benefícios, servindo de base para o desenvolvimento.[^10]
+O capital social, definido como o conjunto de vantagens obtida da rede de relacionamento, pode ser considerado como capital humano ou financeiro, investimentos para sua ampliação devem permitir retornos ou benefícios, servindo de base para o desenvolvimento.[@burt2001]
 
 Com efeito, a rede não é conseqüência, apenas, das relações que de fato existem entre os atores; ela é também o resultado da ausência de relações, da falta de laços diretos entre dois atores, do que Burt[^13] chama de "buracos estruturais". O "desenho" do tecido social apresenta-se, desse modo, como algo semelhante a um queijo suíço. Para os analistas que salientam o "fechamento da rede", o capital social guarda relação direta e proporcional com a quantidade de cliques (ou núcleos de tríades sobrepostas) e com a intensidade dos laços fortes[^14].
 
@@ -114,7 +116,7 @@ ggraph(g_layout) +
 ```
 
 
-Há uma série de métricas e propriedades[^9] de um grafo que podem fornecer informações relevantes sobre a relação (arestas) entre os indivíduos (vértices) e os próprios indivíduos quando esse representa uma rede social. Iremos explorar algumas propriedades que podem estar ligadas a identificação de capital social, são elas:
+Há uma série de métricas e propriedades[@newmann2010] de um grafo que podem fornecer informações relevantes sobre a relação (arestas) entre os indivíduos (vértices) e os próprios indivíduos quando esse representa uma rede social. Iremos explorar algumas propriedades que podem estar ligadas a identificação de capital social, são elas:
 
 * Degree Centrality
 * Betweenness Centrality
@@ -846,21 +848,21 @@ Além disso o carácter _reproduzível da análise_[^5] feita em R permite refinar c
 
 [^3]: Matriz de vértices contra vértices cuja as células indica o peso ou a ligação entre os vértices.
 
-[^4]: Escolhi analisando a formato das redes e escolhendo três casos distintos, excluindo o primeiro caso que possui muitos vértices para ser plotado.
+[^4]: Escolhido com base no formato dos componentes e escolhendo três casos distintos.
 
 [^5]: _Reproducible Research_ ou **pesquisa reproduzível** é a ideia de que a análise de dados e, em geral, as alegações científicas, são publicados com seus dados e código de software para que outros possam verificar as descobertas e construir sobre elas.
 
-[^6]: MARTELETO, R. M. Análise de redes sociais - aplicação nos estudos de transferência da informação. Ciência da Informação, Brasília, v.30, n. 1, p. 71-81, jan./abr. 2001. 
+@marteleto2001 MARTELETO, R. M. Análise de redes sociais - aplicação nos estudos de transferência da informação. Ciência da Informação, Brasília, v.30, n. 1, p. 71-81, jan./abr. 2001. 
 
-[^7]: STORCH, S.. As redes sociais já fazem parte de nosso jeito de pensar. Disponível em: http://www.intranetportal.com.br/e-gov/redessociais - Acesso em: 15 set. 2008. 
+@storch2008 STORCH, S.. As redes sociais já fazem parte de nosso jeito de pensar. Disponível em: http://www.intranetportal.com.br/e-gov/redessociais - Acesso em: 15 set. 2008. 
 
-[^8]: WASSERMAN, S.; FAUST, K. Social network analysis: methods and applications. Cambridge: Cambridge University Press, 1994
+@wasserman1994 WASSERMAN, S.; FAUST, K. Social network analysis: methods and applications. Cambridge: Cambridge University Press, 1994
 
-[^9]: NEWMANN, M. Networks. Oxford University Press. April 2010.
+@newmann2010 NEWMANN, M. Networks. Oxford University Press. April 2010.
 
-[^10]: BURT, R. S. (2001). Structural holes versus network closure as social capital. (Cap. 2, pp. 31-56). New York: Aldine de Gruyter.
+@burt2001 BURT, R. S. Structural holes versus network closure as social capital. (Cap. 2, pp. 31-56). New York: Aldine de Gruyter. 2001.
 
-[^11]: MARTELETO, Regina Maria  and  SILVA, Antonio Braz de Oliveira e. Redes e capital social: o enfoque da informação para o desenvolvimento local. Ci. Inf. 2004, vol.33, n.3, pp.41-49. 
+@marteleto2004 MARTELETO, Regina Maria  and  SILVA, Antonio Braz de Oliveira e. Redes e capital social: o enfoque da informação para o desenvolvimento local. Ci. Inf. 2004, vol.33, n.3, pp.41-49. 
 
 [^12]: BURT, R.S., 2010. Neighbor Networks: Competitive Advantage Local and Personal, First ed. Oxford University Press, New York. Introdução e Capítulo 1.
 
