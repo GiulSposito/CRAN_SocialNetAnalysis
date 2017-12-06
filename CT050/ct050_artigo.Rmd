@@ -1,6 +1,5 @@
 ---
 title: "Análise da Rede de Colaboração de Autores de Pacotes do CRAN usando R"
-subtitle: "[CT050] Geografia da Inovação, Política Tecnológica e Governança de Redes"
 author: "Giuliano Sposito"
 date: "Dezembro de 2017"
 output:
@@ -25,6 +24,14 @@ needs(ggraph)    # visualizacoes de redes
 NUDGE_Y = 0.3
 
 ```
+
+```
+CT050-Turma D: Geografia da Inovação, Política Tecnológica e Governança de Redes
+Profa. Dra. Janaina Pamplona da Costa
+Departamento de Política Científica e Tecnológica
+Instituto de Geociências - Unicamp
+```
+### Abstract
 
 Este artigo explora técnicas de *Análise de Redes Sociais* para analisar o comportamento e organização em redes colaboração de autores e desenvolvedores de pacotes de software para R[^1] publicados no repositório CRAN[^2].
 
@@ -794,6 +801,7 @@ total_clusters <- nrow(clusters)
 knitr::kable( head(clusters, 10), caption = "Comunidades de Autores dentro da Rede" )
   
 ```
+
 Encontramos `r total_clusters` comunidades dentro da rede, dos quais duas se destacam pelo número de colaboradores bem acima dos demais. Vamos visualizar algumas comunidades sobre a estrutura da rede.
 
 ```{r mcplotcommunities, cache=TRUE}
@@ -826,7 +834,7 @@ Claramente podemos observar a organização dos clusters dentro da estrutura. Cada
 
 ## Conclusão
 
-Vimos que as técnicas de análise de grafo são relevante para identificar os principais autores de uma rede, analisar a estrutura e identificar padrões. Particularmente em estruturas muito complexas e com muitos atores as métricas de centralidade evidenciam atores, padrões e comportamento com clareza.
+Vimos que as técnicas de análise de rede usando métricas de centralidade são relevante para identificar os principais autores de uma rede, analisar a estrutura e identificar padrões. Particularmente em estruturas muito complexas e com muitos atores, as métricas conseguem expor à luz, padrões e comportamento embutidos na estrutura.
 
 Além disso o carácter _reproduzível da análise_[^5] feita em R permite refinar continuamente a análise, eliminando resíduos e apurando os resultados
 
