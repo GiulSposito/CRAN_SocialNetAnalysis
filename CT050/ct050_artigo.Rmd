@@ -1,5 +1,6 @@
 ---
 title: "Análise da Rede de Colaboração de Autores de Pacotes do CRAN usando R"
+subtitle: "[CT050] Geografia da Inovação, Política Tecnológica e Governança de Redes"
 author: "Giuliano Sposito"
 date: "Dezembro de 2017"
 output:
@@ -51,7 +52,7 @@ Análise das métricas de rede possibilitaria então apontar intervenções necessári
 
 Análise de Redes Sociais possibilitam, dentre outros, os seguintes benefícios para as organizações: promoção da integração da rede de pessoas participantes em atividades de negociações da empresa, identificação dos indivíduos que não compartilham seus conhecimentos; a avaliação do desempenho de um grupo de pessoas que trabalham de forma integrada, dentre outros. 
 
-Muitas práticas gerenciais habituais no cotidiano das empresas e comporações podem explorar os conceitos e mecanismos da organização em rede, melhorando a sua efetividade: 
+Muitas práticas gerenciais habituais no cotidiano das empresas e corporações podem explorar os conceitos e mecanismos da organização em rede, melhorando a sua efetividade: 
 
 * **Gestão de Talentos**: Encontrar os líderes naturais na organização;
 * **Inovação**: Identificar fronteiras. Garantir que a organização tenha acesso a novas idéias;
@@ -63,13 +64,13 @@ Muitas práticas gerenciais habituais no cotidiano das empresas e comporações pod
 
 ## Conceitos Chaves para Análise de Redes
 
-O uso primário da teoria de grafos na análise de rede é buscar identificar "importante" atores. O conceito de prestígio e centralidade busca quantificar ideías teóricas sobre a prominiencia de um ator em uma rede, sumarizando as relações estruturais com os demais atores. Além disso, fornece indicadores no nível de grupo, que permite avaliar a disperação ou desigualdade (de recuros e/ou informações) entre todos os atores da rede.
+O uso primário da teoria de grafos na análise de rede é buscar identificar "importante" atores. O conceito de prestígio e centralidade busca quantificar ideias teóricas sobre a proeminência de um ator em uma rede, sumarizando as relações estruturais com os demais atores. Além disso, fornece indicadores no nível de grupo, que permite avaliar a dispersão ou desigualdade (de recursos e/ou informações) entre todos os atores da rede.
 
 A *teoria de grafos*, campo da da matemática que estuda as relações entre os objetos de um determinado conjunto, fornece os mecanismos matemáticos que são base para a análise das estruturas da rede. Através do entendimento da estrutura de uma rede é possível ter _insights_ sobre seus padrões, propriedades e indivíduos. 
 
 Um grafo é uma representação matemática de uma rede social, onde os elementos (empresas, pessoas, etc.) são representados por vértices e a relação entre os elementos são representados como arestas entre dois vértices. A ligação (aresta) pode ser direcional ou não direcional. Pode-se associar valores tanto aos nós como arestas.
 
-```{r network}
+```{r network, cache=TRUE}
 # Lista de arestas, os números são identificadores dos nós
 g_edgelist <- data.frame(
   from = c( 1,1,2,2,3,3,5,5),
@@ -127,7 +128,7 @@ Exemplos:
 * Quantas pessoas essa pessoa pode alcançar diretamente?
 * Em uma rede de músicos: com quantas pessoas essa pessoa já colaborou/tocou?
 
-```{r degree}
+```{r degree, cache=TRUE}
 # plot da rede evidenciando o degree
 ggraph(g_layout) +
   geom_edge_fan(alpha=0.4) +
@@ -155,7 +156,7 @@ Exemplos:
 * Me uma rede de espiões: quem é o espião pela qual a maioria das informações confidenciais pode fluir?
 
 
-```{r Betweenness}
+```{r Betweenness, cache=TRUE}
 
 # plot da rede evidenciando o betweenness
 ggraph(g_layout) +
@@ -181,7 +182,7 @@ Exemplos:
 * Quão rápido essa pessoa pode alcançar todos na rede?
 * Em rede de relações sexuais: quão rápido uma DST se espalhará dessa pessoa para o resto da rede?
 
-```{r closeness}
+```{r closeness, cache=TRUE}
 ggraph(g_layout) +
   geom_edge_fan(alpha=0.4) +
   geom_node_point(aes(color = clsn), size=8) + 
@@ -204,7 +205,7 @@ Exemplos:
 * Quão bem esta pessoa está conectada a outras pessoas bem conectadas?
 * Na rede de citações de artigos: quem é o autor mais citado por outros autores bem citados?
 
-```{r eigenvector}
+```{r eigenvector, cache=TRUE}
 ggraph(g_layout) +
   geom_edge_fan(alpha=0.4) +
   geom_node_point(aes(color = eign), size=8) + 
@@ -220,7 +221,7 @@ ggraph(g_layout) +
 
 Um rede pode ter ser segmentada, ou seja, nós formam sub-redes não conectadas entre si, tais sub-redes são chamadas de componentes.
 
-```{r components}
+```{r components, cache=TRUE}
 # montando uma lista de arestas (os números identificam o vértice)
 edgelist <- data.frame(
   from = c(1,1,2,4,2,3,4,5,6,6,7,7,8,8,9,10),
@@ -254,7 +255,7 @@ Usando as métricas listadas acima é possível identificar e classificar a atuação
 
 Tome-se como exemplo esta rede:
 
-```{r kpnetwork}
+```{r kpnetwork, cache=TRUE}
 # lista de ligacoes
 h_edgelist <- data.frame(
   from = c( 0,  1, 1,  2, 2, 3, 3,  3,  4, 5, 5, 5, 8),
@@ -281,7 +282,7 @@ ggraph(h, layout="kk") +
 
 Vamos combinar as medidas de centralidade para exibir importantes atores na estrutura.
 
-```{r kpcentralities}
+```{r kpcentralities, cache=TRUE}
 # calculando métricas de centralidade 
 h <- h %>%
   activate("nodes") %>%
@@ -314,7 +315,7 @@ As várias medidas de centralidade são mostradas acima e são representadas:
 * Número abaixo do vértice: Eigenvetor Centrality
 * Cor e valor na aresta: Edge Betweenness Centrality
 
-```{r kptable}
+```{r kptable, cache=TRUE}
 h %>% activate("nodes") %>%
   as.tibble() %>%
   select(-clst) %>%
@@ -335,7 +336,7 @@ Combinando duas métricas de centralidade, autovetores e intermediação, é possíve
 * Um ator com **alta intermediação** (*betweenness*) e **baixo autovetor** (*eigenvector*) pode ser um porteiro (_Gatekeeper_) importante para um ator central ou atores importantes.
 * Um ator com **baixa intermediação** e **alto autovetor** pode ter acesso exclusivo a atores centrais.
 
-```{r keysplayer}
+```{r keysplayer, cache=TRUE}
 h %>% activate("nodes") %>% as_tibble() %>% 
   ggplot(aes(x=btwn, y=eign)) + 
   geom_point() + geom_label(aes(label=name)) +
@@ -345,7 +346,7 @@ h %>% activate("nodes") %>% as_tibble() %>%
 Observando a distribuição de como *eigenvector* fica em função *betweenness*, é possível observar então que o nó **F** atua como um *Gatekeeper* e o nó **C** como um nó de acesso a atores importantes (*accessor*).
 
 
-```{r nodetypes}
+```{r nodetypes, cache=TRUE}
 # key actors type
 h <- h %>%
   activate("nodes") %>%
@@ -376,7 +377,7 @@ Muitas redes consistem em módulos que estão densamente conectados, mas que estão
 
 Uma estratégia é calcular a centralidade de betweenness das arestas e ir removendo gradualmente as arestas de maior pontuação, desconectando o gráfico, identificando assim as comunidades.
 
-```{r community}
+```{r community, cache=TRUE}
 ggraph(h, layout="kk") +
    geom_edge_fan2(alpha=0.5, aes(edge_colour = ebtwn)) +
   geom_node_point(aes(color=clst),alpha=0.9, size=8) +
@@ -468,7 +469,7 @@ total_edges <- authors_network %>% activate("edges") %>% as.tibble() %>% nrow()
 
 A rede construída é composta de `r total_authors` autores que se relacionam através `r total_edges` arestas. Dado a natureza do objeto estudado espera-se que essa rede não seja conecta integralmente, formando então **componentes** de colaboração entre grupos de autores distintos, vamos analisar esse aspecto.
 
-```{r whichcomponents}
+```{r whichcomponents, cache=TRUE}
 
 # identifica os components
 g <- authors_network %>% 
@@ -491,7 +492,7 @@ Vamos selecionar três destes componentes para caracterizá-los: componentes 30, 3
 
 ### Comparando os três components
 
-```{r plotcomponents}
+```{r plotcomponents, cache=TRUE}
 
 sel_components <- c(30,33,717)
 
@@ -507,7 +508,7 @@ g %>%
 
 Nota-se que os componentes possuem estruturas distintas umas das outras, vamos caracterizá-las com métricas de rede.
 
-```{r compnetworks}
+```{r compnetworks, cache=TRUE}
 
 # para cada um do componentes escolhidos
 net_metrics <- rbindlist(lapply( sel_components, function(comp){
@@ -539,7 +540,7 @@ Nota-se nos valores que as redes de fato são distintas nessas dimensões.
 
 ### analise de atores 
 
-```{r actorscentrality}
+```{r actorscentrality, cache=TRUE}
 # calcula centralidades para uma rede
 calcNodeMetrics <- function(net, comp){
   net %>%
@@ -578,7 +579,7 @@ Numa rede totalmente conectada (densidade = 1), todos os nós e arestas tem as me
 
 #### Componente 33
 
-```{r comp33plot1}
+```{r comp33plot1, cache=TRUE}
   ggraph(netMetrics$`33`, layout="kk") +
     geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn)) +
     geom_node_point(aes(color=btwn, size=btwn),alpha=0.9) +
@@ -587,7 +588,7 @@ Numa rede totalmente conectada (densidade = 1), todos os nós e arestas tem as me
     ggtitle( "Componente 33 - Betweenness" )
 ```
 
-```{r comp33table1}
+```{r comp33table1, cache=TRUE}
 netMetrics$`33` %>%
   activate("nodes") %>%
   as.tibble() %>%
@@ -601,7 +602,7 @@ netMetrics$`33` %>%
 A rede do componente 33 já é bem menos acoplada, portanto de menor densidade, é possível visualizar os autores mais bem "relacionados" e os autores que atuam com "pontes" entre os diversos nós na estrutura. Isso é reflexo de quando o autor trabalha em momentos diferentes com outros grupos de autores em pacotes diferentes.
 
 
-```{r comp33plot2}
+```{r comp33plot2, cache=TRUE}
 ggraph(netMetrics$`33`, layout="kk") +
   geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn)) +
   geom_node_point(aes(color=eign, size=eign),alpha=0.9) +
@@ -610,7 +611,7 @@ ggraph(netMetrics$`33`, layout="kk") +
   ggtitle( "Componente 33 - Eigenvector Centrality" )
 ```
 
-```{r comp33table2}
+```{r comp33table2, cache=TRUE}
 netMetrics$`33` %>%
   activate("nodes") %>%
   as.tibble() %>%
@@ -625,7 +626,7 @@ netMetrics$`33` %>%
 
 O componente 717 tem uma estrutura mais acoplada, com uma densidade de 0,23, intermediária entre a 30 e 33, é possível observar grupos que trabalham juntos e grande autor central conectando os subgrupos.
 
-```{r comp717plot1}
+```{r comp717plot1, cache=TRUE}
   ggraph(netMetrics$`717`, layout="kk") +
     geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn)) +
     geom_node_point(aes(color=btwn, size=btwn),alpha=0.9) +
@@ -634,7 +635,7 @@ O componente 717 tem uma estrutura mais acoplada, com uma densidade de 0,23, int
     ggtitle( "Componente 717 - Betweenness" )
 ```
 
-```{r comp717table1}
+```{r comp717table1, cache=TRUE}
 netMetrics$`717` %>%
   activate("nodes") %>%
   as.tibble() %>%
@@ -647,7 +648,7 @@ netMetrics$`717` %>%
 
 Podemos observar, de fato, que o autor central [Quanli Wang](https://www.linkedin.com/in/quanli-wang-5645a01b/) trabalhou em 7 pacotes diferente, servindo de pontes para os vários subgrupos presente neste componente. Como ele é o único autor ligando esses subgrupos ele também é o mais bem "referenciado".
 
-```{r comp717plot2}
+```{r comp717plot2, cache=TRUE}
 ggraph(netMetrics$`717`, layout="kk") +
   geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn)) +
   geom_node_point(aes(color=eign, size=eign),alpha=0.9) +
@@ -657,7 +658,7 @@ ggraph(netMetrics$`717`, layout="kk") +
 ```
 
 
-```{r comp717table2}
+```{r comp717table2, cache=TRUE}
 netMetrics$`717` %>%
   activate("nodes") %>%
   as.tibble() %>%
@@ -672,7 +673,7 @@ netMetrics$`717` %>%
 
 Vamos analisar frequência de publicação por autores, excluindo autores que contribuíram apenas uma vez.
 
-```{r}
+```{r pubfreq, cache=TRUE}
 aut_list %>% 
   select(packages) %>%
   unlist() %>%
@@ -681,7 +682,7 @@ aut_list %>%
 
 Observa-se que mais de 75% (3rd Quarter) dos autores contribuíram apenas 1 vez com outros autores, para estabelecer uma rede de colaboração mais efetiva (e não apenas momentânea), vamos filtrar na rede autores que  pelo menos 5 pacotes.
 
-```{r majorcomp}
+```{r majorcomp, cache=TRUE}
 # obtendo a rede de colaboradores com mais de 5 publicações
 h <- authors_network %>%
   activate("nodes") %>%
@@ -702,7 +703,7 @@ ggraph(h, layout="lgl") +
 
 Temos então o maior componente da rede de colaboração de autores que publicaram mais de 5 pacotes com as características:
 
-```{r mcmetrics}
+```{r mcmetrics, cache=TRUE}
 
 knitr::kable( data.frame(
     nodes     = h %>% activate("nodes") %>% as.tibble() %>% nrow(),
@@ -718,7 +719,7 @@ knitr::kable( data.frame(
 
 Nesta rede, vamos então localizar e analisar os principais autores chave, usando as métricas de centralidade.
 
-```{r mccentrality}
+```{r mccentrality, cache=TRUE}
 h <- h %>%
   activate("nodes") %>%
   mutate(
@@ -742,7 +743,7 @@ Podemos notar que a lista trás de fato, autores influentes na comunidade de dese
 
 Vamos visualizar os autores na rede.
 
-```{r plottopauthors}
+```{r plottopauthors, cache=TRUE}
 
 authors_top10 <- authors[1:10,]$name
 authors_top20 <- authors[11:20,]$name
@@ -774,7 +775,7 @@ Embora a visualização com todos os nós seja complicada é possível visualizar que
 
 Uma outra análise que podemos fazer, diz respeito a identificar e avaliar os diversos clusters (_comunidades_) dentro da rede, ou seja, grupos de autores fortemente conectados entre si, e fracamente conectados com outros grupo de autores, podemos identificar agrupando de acordo com a centralidade de *betweenness* das arestas.
 
-```{r mccommunity}
+```{r mccommunity, cache=TRUE}
 h <- h %>%
   activate("nodes") %>%
   mutate(
@@ -795,7 +796,7 @@ knitr::kable( head(clusters, 10), caption = "Comunidades de Autores dentro da Re
 ```
 Encontramos `r total_clusters` comunidades dentro da rede, dos quais duas se destacam pelo número de colaboradores bem acima dos demais. Vamos visualizar algumas comunidades sobre a estrutura da rede.
 
-```{r mcplotcommunities}
+```{r mcplotcommunities, cache=TRUE}
 
 h <- h %>%
   activate("nodes") %>%
