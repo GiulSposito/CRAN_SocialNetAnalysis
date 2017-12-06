@@ -2,7 +2,6 @@
 title: "Análise da Rede de Colaboração de Autores de Pacotes do CRAN usando R"
 author: "Giuliano Sposito"
 date: "Dezembro de 2017"
-csl: associacao-brasileira-de-normas-tecnicas.csl
 output:
   pdf_document: default
   html_document:
@@ -41,19 +40,21 @@ Este artigo explora técnicas de *Análise de Redes Sociais* para analisar o compo
 
 ### Redes Sociais
 
-O trabalho em rede tem se tornado cada vez mais uma maneira de organização humana presente em nossas vidas e nos mais diferentes níveis da estrutura das empresas modernas. "Os indivíduos, dotados de recursos e capacidades propositivas, organizam suas ações nos próprios espaços políticos em função de socializações e mobilizações suscitadas pelo próprio desenvolvimento das redes". [@MALETO 2001]
+O trabalho em rede tem se tornado cada vez mais uma maneira de organização humana presente em nossas vidas e nos mais diferentes níveis da estrutura das empresas modernas. "_Os indivíduos, dotados de recursos e capacidades propositivas, organizam suas ações nos próprios espaços políticos em função de socializações e mobilizações suscitadas pelo próprio desenvolvimento das redes_"(MARTELETO 2001).
 
-A dinâmica das redes funciona por meio de atividades relacionadas ao compartilhamento de valores e de idéias em comunidades, e em sua representação gráfica em que cada ator é representada por um nó, e as relações são representadas por linhas que conectam os nós.[@storch2008]
+A dinâmica das redes funciona por meio de atividades relacionadas ao compartilhamento de valores e de idéias em comunidades, e em sua representação gráfica em que cada ator é representada por um nó, e as relações são representadas por linhas que conectam os nós. (STORCH 2008)
 
-Analisar estas redes resume-se em estudar as ligações relacionais entre atores sociais. Estes atores, tanto podem ser pessoas e empresas individualmente ou coletivamente analisadas em unidades sociais, como por exemplo, departamento de uma organização, prestadoras de serviço público em um município ou estados-nação em um continente.[@wasserman1994] 
+Analisar estas redes resume-se em estudar as ligações relacionais entre atores sociais. Estes atores, tanto podem ser pessoas e empresas individualmente ou coletivamente analisadas em unidades sociais, como por exemplo, departamento de uma organização, prestadoras de serviço público em um município ou estados-nação em um continente. (WASSERMAN 1994) 
+
 
 ### Vantagens Competitivas da Rede
 
-O acesso à informação é um elemento-chave para o desenvolvimento econômico e social de comunidades, grupos sociais e indivíduos. A capacidade de obter informações, além dos contornos restritos da própria localidade, é parte do capital relacional dos indivíduos e grupos.[@marteleto2004]
+O acesso à informação é um elemento-chave para o desenvolvimento econômico e social de comunidades, grupos sociais e indivíduos. A capacidade de obter informações, além dos contornos restritos da própria localidade, é parte do capital relacional dos indivíduos e grupos. (MARTELETO 2004)
 
-O capital social, definido como o conjunto de vantagens obtida da rede de relacionamento, pode ser considerado como capital humano ou financeiro, investimentos para sua ampliação devem permitir retornos ou benefícios, servindo de base para o desenvolvimento.[@burt2001]
+O capital social, definido como o conjunto de vantagens obtida da rede de relacionamento, pode ser considerado como capital humano ou financeiro, investimentos para sua ampliação devem permitir retornos ou benefícios, servindo de base para o desenvolvimento. (BURT 2001)
 
-Com efeito, a rede não é conseqüência, apenas, das relações que de fato existem entre os atores; ela é também o resultado da ausência de relações, da falta de laços diretos entre dois atores, do que Burt[^13] chama de "buracos estruturais". O "desenho" do tecido social apresenta-se, desse modo, como algo semelhante a um queijo suíço. Para os analistas que salientam o "fechamento da rede", o capital social guarda relação direta e proporcional com a quantidade de cliques (ou núcleos de tríades sobrepostas) e com a intensidade dos laços fortes[^14].
+Com efeito, a rede não é conseqüência, apenas, das relações que de fato existem entre os atores; ela é também o resultado da ausência de relações, da falta de laços diretos entre dois atores, do que Burt (BURT 1992) chama de "buracos estruturais". O "desenho" do tecido social apresenta-se, desse modo, como algo semelhante a um queijo suíço. Para os analistas que salientam o "fechamento da rede", o capital social guarda relação direta e proporcional com a quantidade de cliques (ou núcleos de tríades sobrepostas) e com a intensidade dos laços fortes (ENGLE 1999).
+
 
 ### Importancia da Análise de Redes Sociais
 
@@ -78,6 +79,7 @@ O uso primário da teoria de grafos na análise de rede é buscar identificar "impo
 A *teoria de grafos*, campo da da matemática que estuda as relações entre os objetos de um determinado conjunto, fornece os mecanismos matemáticos que são base para a análise das estruturas da rede. Através do entendimento da estrutura de uma rede é possível ter _insights_ sobre seus padrões, propriedades e indivíduos. 
 
 Um grafo é uma representação matemática de uma rede social, onde os elementos (empresas, pessoas, etc.) são representados por vértices e a relação entre os elementos são representados como arestas entre dois vértices. A ligação (aresta) pode ser direcional ou não direcional. Pode-se associar valores tanto aos nós como arestas.
+
 
 ```{r network, cache=TRUE}
 # Lista de arestas, os números são identificadores dos nós
@@ -116,7 +118,7 @@ ggraph(g_layout) +
 ```
 
 
-Há uma série de métricas e propriedades[@newmann2010] de um grafo que podem fornecer informações relevantes sobre a relação (arestas) entre os indivíduos (vértices) e os próprios indivíduos quando esse representa uma rede social. Iremos explorar algumas propriedades que podem estar ligadas a identificação de capital social, são elas:
+Há uma série de métricas e propriedades (Newmann, 2010) de um grafo que podem fornecer informações relevantes sobre a relação (arestas) entre os indivíduos (vértices) e os próprios indivíduos quando esse representa uma rede social. Iremos explorar algumas propriedades que podem estar ligadas a identificação de capital social, são elas:
 
 * Degree Centrality
 * Betweenness Centrality
@@ -135,7 +137,8 @@ O Grau (_Degree_) é o número de arestas (ou links) que levam para dentro ou para
 Exemplos:
 
 * Quantas pessoas essa pessoa pode alcançar diretamente?
-* Em uma rede de músicos: com quantas pessoas essa pessoa já colaborou/tocou?
+* Em uma rede de músicos: com quantas pessoas essa pessoa já colaborou/tocou junto?
+
 
 ```{r degree, cache=TRUE}
 # plot da rede evidenciando o degree
@@ -191,6 +194,7 @@ Exemplos:
 * Quão rápido essa pessoa pode alcançar todos na rede?
 * Em rede de relações sexuais: quão rápido uma DST se espalhará dessa pessoa para o resto da rede?
 
+
 ```{r closeness, cache=TRUE}
 ggraph(g_layout) +
   geom_edge_fan(alpha=0.4) +
@@ -230,6 +234,7 @@ ggraph(g_layout) +
 
 Um rede pode ter ser segmentada, ou seja, nós formam sub-redes não conectadas entre si, tais sub-redes são chamadas de componentes.
 
+
 ```{r components, cache=TRUE}
 # montando uma lista de arestas (os números identificam o vértice)
 edgelist <- data.frame(
@@ -263,6 +268,7 @@ ggraph(g, layout="kk") +
 Usando as métricas listadas acima é possível identificar e classificar a atuação e importância dos atores em uma rede.
 
 Tome-se como exemplo esta rede:
+
 
 ```{r kpnetwork, cache=TRUE}
 # lista de ligacoes
@@ -324,12 +330,14 @@ As várias medidas de centralidade são mostradas acima e são representadas:
 * Número abaixo do vértice: Eigenvetor Centrality
 * Cor e valor na aresta: Edge Betweenness Centrality
 
+
 ```{r kptable, cache=TRUE}
 h %>% activate("nodes") %>%
   as.tibble() %>%
   select(-clst) %>%
   knitr::kable(caption="Métricas de Centralidade dos Nós")
 ```
+
 
 Através das relações entre as centralidades é possível identificar os seguintes aspectos
 
@@ -338,6 +346,7 @@ Através das relações entre as centralidades é possível identificar os seguintes 
 * O nó **D** é o mais próximo aos demais e
 * O nó **K** é no mais referenciado por nós mais referenciados (maior *eigenvector*), seguido logo por **D**, mais uma vez mostrando a importância do no **D** na estrutura da rede.
 
+
 #### Gatekeepers & Accessors
 
 Combinando duas métricas de centralidade, autovetores e intermediação, é possível evidenciar dois tipos de atores específicos numa rede. 
@@ -345,12 +354,14 @@ Combinando duas métricas de centralidade, autovetores e intermediação, é possíve
 * Um ator com **alta intermediação** (*betweenness*) e **baixo autovetor** (*eigenvector*) pode ser um porteiro (_Gatekeeper_) importante para um ator central ou atores importantes.
 * Um ator com **baixa intermediação** e **alto autovetor** pode ter acesso exclusivo a atores centrais.
 
+
 ```{r keysplayer, cache=TRUE}
 h %>% activate("nodes") %>% as_tibble() %>% 
   ggplot(aes(x=btwn, y=eign)) + 
   geom_point() + geom_label(aes(label=name)) +
   theme( legend.position = "none" )
 ```
+
 
 Observando a distribuição de como *eigenvector* fica em função *betweenness*, é possível observar então que o nó **F** atua como um *Gatekeeper* e o nó **C** como um nó de acesso a atores importantes (*accessor*).
 
@@ -378,13 +389,16 @@ ggraph(h, layout="kk") +
 
 ```
 
+
 Podemos perceber que o nó **C** é o nó que "dá acesso" a nós de alta reputação (*eigenvector*) enquanto o nó **F**, é um nó de relativa baixa reputação que atua de porteiro para os nós de atua relevância (D, K, E e C).
+
 
 #### Comunidades (_clusters_)
 
 Muitas redes consistem em módulos que estão densamente conectados, mas que estão escassamente conectados a outros módulos, a esses módulos é dado o nome de *comunidade*. A ideia da detecção de estrutura de comunidade é descobrir "bordas" e detectar arestas quem ligam módulos separados. 
 
 Uma estratégia é calcular a centralidade de betweenness das arestas e ir removendo gradualmente as arestas de maior pontuação, desconectando o gráfico, identificando assim as comunidades.
+
 
 ```{r community, cache=TRUE}
 ggraph(h, layout="kk") +
@@ -407,7 +421,9 @@ Qualquer pessoa pode desenvolver e disponibilizar pacotes, porém é mais comum qu
 
 O pacote publicado contém uma lista de autores, que contribuíram para construir e publicar o pacote. O objetivo desta análise entender como se organiza a rede de colaboração de autores, para isso usaremos os dados de publicação para construir uma rede, onde cada vértice da rede é um ator e uma aresta identifica um pacote em que dois (ou mais autores) colaboraram juntos.
 
+
 ### Construindo a Rede
+
 
 ```{r crandata, cache=TRUE}
 
@@ -474,6 +490,7 @@ total_edges <- authors_network %>% activate("edges") %>% as.tibble() %>% nrow()
 
 ```
 
+
 ### Selecionando Components
 
 A rede construída é composta de `r total_authors` autores que se relacionam através `r total_edges` arestas. Dado a natureza do objeto estudado espera-se que essa rede não seja conecta integralmente, formando então **componentes** de colaboração entre grupos de autores distintos, vamos analisar esse aspecto.
@@ -501,6 +518,7 @@ Vamos selecionar três destes componentes para caracterizá-los: componentes 30, 3
 
 ### Comparando os três components
 
+
 ```{r plotcomponents, cache=TRUE}
 
 sel_components <- c(30,33,717)
@@ -515,7 +533,9 @@ g %>%
 
 ```
 
+
 Nota-se que os componentes possuem estruturas distintas umas das outras, vamos caracterizá-las com métricas de rede.
+
 
 ```{r compnetworks, cache=TRUE}
 
@@ -549,6 +569,7 @@ Nota-se nos valores que as redes de fato são distintas nessas dimensões.
 
 ### analise de atores 
 
+
 ```{r actorscentrality, cache=TRUE}
 # calcula centralidades para uma rede
 calcNodeMetrics <- function(net, comp){
@@ -573,6 +594,7 @@ netMetrics <- setNames(netMetrics, sel_components)
 
 ```
 
+
 #### Component 30
 
 ```{r comp30, cache=T}
@@ -584,7 +606,9 @@ ggraph(netMetrics$`30`, layout="kk") +
   ggtitle( "Componente 30" )
 ```
 
+
 Numa rede totalmente conectada (densidade = 1), todos os nós e arestas tem as mesmas métricas, não é possível selecionar um (ou mais autores) como mais influente ou relação mais importante, a rede é homogênea. Este componente é composto de autores de um só pacote ([rcorpora](https://cran.r-project.org/web/packages/rcorpora/index.html)), cujo os autores não trabalharam com nenhum outro conjunto de autores.
+
 
 #### Componente 33
 
@@ -608,6 +632,7 @@ netMetrics$`33` %>%
 
 ```
 
+
 A rede do componente 33 já é bem menos acoplada, portanto de menor densidade, é possível visualizar os autores mais bem "relacionados" e os autores que atuam com "pontes" entre os diversos nós na estrutura. Isso é reflexo de quando o autor trabalha em momentos diferentes com outros grupos de autores em pacotes diferentes.
 
 
@@ -630,6 +655,7 @@ netMetrics$`33` %>%
   knitr::kable( caption="Autores por Eigenvector (10 mais)")
 
 ```
+
 
 #### Componente 717
 
@@ -655,7 +681,9 @@ netMetrics$`717` %>%
 
 ```
 
+
 Podemos observar, de fato, que o autor central [Quanli Wang](https://www.linkedin.com/in/quanli-wang-5645a01b/) trabalhou em 7 pacotes diferente, servindo de pontes para os vários subgrupos presente neste componente. Como ele é o único autor ligando esses subgrupos ele também é o mais bem "referenciado".
+
 
 ```{r comp717plot2, cache=TRUE}
 ggraph(netMetrics$`717`, layout="kk") +
@@ -677,6 +705,7 @@ netMetrics$`717` %>%
   knitr::kable( caption="Autores por Eigenvector (10 mais)")
 
 ```
+
 
 ### Analisando colaboração recorrente
 
@@ -724,6 +753,7 @@ knitr::kable( data.frame(
 
 ```
 
+
 #### Autores Chaves
 
 Nesta rede, vamos então localizar e analisar os principais autores chave, usando as métricas de centralidade.
@@ -748,9 +778,11 @@ authors <- h %>%
 knitr::kable( head(authors, 10), caption = "Principais Autores, pelo critério de betweeness. (top 10)")
 ```
 
+
 Podemos notar que a lista trás de fato, autores influentes na comunidade de desenvolvimento R, como [Hadley Wickham](http://hadley.nz/) (cientista Chefe na empresa RStudio), [Martin Maechler](https://stat.ethz.ch/~maechler/) (estatístico suíço na ETH) e [Jeffrey Horner](http://biostat.mc.vanderbilt.edu/wiki/Main/JeffreyHorner) (Developer no departamento de bio estatística da universidade Vanderbuilt). Importante notar que este último, possui alto **betweeness* mas relativamente pouco grau (*degree*) comparado aos autores da lista.
 
 Vamos visualizar os autores na rede.
+
 
 ```{r plottopauthors, cache=TRUE}
 
@@ -780,9 +812,11 @@ ggraph(h, layout="lgl") +
 
 Embora a visualização com todos os nós seja complicada é possível visualizar que alguns dos autores no grupo selecionado realmente atuam como "pontes" (_bridges_) concentrado arestas entre grupos distintos.
 
+
 #### Comunidades
 
 Uma outra análise que podemos fazer, diz respeito a identificar e avaliar os diversos clusters (_comunidades_) dentro da rede, ou seja, grupos de autores fortemente conectados entre si, e fracamente conectados com outros grupo de autores, podemos identificar agrupando de acordo com a centralidade de *betweenness* das arestas.
+
 
 ```{r mccommunity, cache=TRUE}
 h <- h %>%
@@ -804,7 +838,9 @@ knitr::kable( head(clusters, 10), caption = "Comunidades de Autores dentro da Re
   
 ```
 
+
 Encontramos `r total_clusters` comunidades dentro da rede, dos quais duas se destacam pelo número de colaboradores bem acima dos demais. Vamos visualizar algumas comunidades sobre a estrutura da rede.
+
 
 ```{r mcplotcommunities, cache=TRUE}
 
@@ -832,7 +868,9 @@ ggraph(h, layout="lgl") +
 
 ```
 
+
 Claramente podemos observar a organização dos clusters dentro da estrutura. Cada um dos clusters poderiam ser separados da estrutura e analisados à parte, aplicando novamente as métricas de centralidade para evidenciar os seus atores principais e sua dinâmica de integração.
+
 
 ## Conclusão
 
@@ -840,7 +878,8 @@ Vimos que as técnicas de análise de rede usando métricas de centralidade são rel
 
 Além disso o carácter _reproduzível da análise_[^5] feita em R permite refinar continuamente a análise, eliminando resíduos e apurando os resultados
 
-## Notas e Referências
+
+## Referências
 
 [^1]: [R](https://www.r-project.org/) é uma linguagem de programação e ambiente para computação e análise estatística, de uso gratuito e que que fornece uma ampla variedade de técnicas  para: modelagem linear e não-linear, testes estatísticos, análise de séries temporais, classificação, agrupamento. 
 
@@ -852,20 +891,26 @@ Além disso o carácter _reproduzível da análise_[^5] feita em R permite refinar c
 
 [^5]: _Reproducible Research_ ou **pesquisa reproduzível** é a ideia de que a análise de dados e, em geral, as alegações científicas, são publicados com seus dados e código de software para que outros possam verificar as descobertas e construir sobre elas.
 
-@marteleto2001 MARTELETO, R. M. Análise de redes sociais - aplicação nos estudos de transferência da informação. Ciência da Informação, Brasília, v.30, n. 1, p. 71-81, jan./abr. 2001. 
+BURT, R. Structural Holes. University of Chicago Press, Chicago, 1992.
 
-@storch2008 STORCH, S.. As redes sociais já fazem parte de nosso jeito de pensar. Disponível em: http://www.intranetportal.com.br/e-gov/redessociais - Acesso em: 15 set. 2008. 
+BURT, R. S. (. Structural holes versus network closure as social capital. (Cap. 2, pp. 31-56). New York: Aldine de Gruyter. 2001
 
-@wasserman1994 WASSERMAN, S.; FAUST, K. Social network analysis: methods and applications. Cambridge: Cambridge University Press, 1994
+ENGLE, S. Structural Holes and Simmelian Ties: Exploring Social Capital, Task Interdependence and Individual Effectiveness. Phd Thesis, University of North Texas, 1999.
 
-@newmann2010 NEWMANN, M. Networks. Oxford University Press. April 2010.
+MARTELETO, R. M. Análise de redes sociais - aplicação nos estudos de transferência da informação. Ciência da Informação, Brasília, v.30, n. 1, p. 71-81, jan./abr. 2001. 
 
-@burt2001 BURT, R. S. Structural holes versus network closure as social capital. (Cap. 2, pp. 31-56). New York: Aldine de Gruyter. 2001.
+MARTELETO, Regina Maria  and  SILVA, Antonio Braz de Oliveira e. Redes e capital social: o enfoque da informação para o desenvolvimento local. Ci. Inf. 2004, vol.33, n.3, pp.41-49.
 
-@marteleto2004 MARTELETO, Regina Maria  and  SILVA, Antonio Braz de Oliveira e. Redes e capital social: o enfoque da informação para o desenvolvimento local. Ci. Inf. 2004, vol.33, n.3, pp.41-49. 
+NEWMANN, M. Networks. Oxford University Press. April 2010.
 
-[^12]: BURT, R.S., 2010. Neighbor Networks: Competitive Advantage Local and Personal, First ed. Oxford University Press, New York. Introdução e Capítulo 1.
+STORCH, S.. As redes sociais já fazem parte de nosso jeito de pensar. Disponível em: http://www.intranetportal.com.br/e-gov/redessociais - Acesso em: 15 set. 2008. 
 
-[^13]: BURT, R. Structural Holes. University of Chicago Press, Chicago, 1992. 
+WASSERMAN, S.; FAUST, K. Social network analysis: methods and applications. Cambridge: Cambridge University Press, 1994
 
-[^14]: ENGLE, S. Structural Holes and Simmelian Ties: Exploring Social Capital, Task Interdependence and Individual Effectiveness. Phd Thesis, University of North Texas, 1999.
+
+
+
+ 
+
+ 
+
