@@ -25,9 +25,45 @@ NUDGE_Y = 0.3
 
 ```
 
-Este artigo explora técnicas de *Análise de Redes Sociais* para analisar a rede de colaboração de autores de pacotes de análise para R[^1] publicados no CRAN[^2].
+Este artigo explora técnicas de *Análise de Redes Sociais* para analisar o comportamento e organização em redes colaboração de autores e desenvolvedores de pacotes de software para R[^1] publicados no repositório CRAN[^2].
+
+## Introdução
+
+### Redes Sociais
+
+O trabalho em rede tem se tornado cada vez mais uma maneira de organização humana presente em nossas vidas e nos mais diferentes níveis da estrutura das empresas modernas. "Os indivíduos, dotados de recursos e capacidades propositivas, organizam suas ações nos próprios espaços políticos em função de socializações e mobilizações suscitadas pelo próprio desenvolvimento das redes". [^6]
+
+A dinâmica das redes funciona por meio de atividades relacionadas ao compartilhamento de valores e de idéias em comunidades, e em sua representação gráfica em que cada ator é representada por um nó, e as relações são representadas por linhas que conectam os nós.[^7]
+
+Analisar estas redes resume-se em estudar as ligações relacionais entre atores sociais. Estes atores, tanto podem ser pessoas e empresas individualmente ou coletivamente analisadas em unidades sociais, como por exemplo, departamento de uma organização, prestadoras de serviço público em um município ou estados-nação em um continente.[^8] 
+
+### Vantagens Competitivas da Rede
+
+O acesso à informação é um elemento-chave para o desenvolvimento econômico e social de comunidades, grupos sociais e indivíduos. A capacidade de obter informações, além dos contornos restritos da própria localidade, é parte do capital relacional dos indivíduos e grupos.[^11]
+
+O capital social, definido como o conjunto de vantagens obtida da rede de relacionamento, pode ser considerado como capital humano ou financeiro, investimentos para sua ampliação devem permitir retornos ou benefícios, servindo de base para o desenvolvimento.[^10]
+
+Com efeito, a rede não é conseqüência, apenas, das relações que de fato existem entre os atores; ela é também o resultado da ausência de relações, da falta de laços diretos entre dois atores, do que Burt[^13] chama de "buracos estruturais". O "desenho" do tecido social apresenta-se, desse modo, como algo semelhante a um queijo suíço. Para os analistas que salientam o "fechamento da rede", o capital social guarda relação direta e proporcional com a quantidade de cliques (ou núcleos de tríades sobrepostas) e com a intensidade dos laços fortes[^14].
+
+### Importancia da Análise de Redes Sociais
+
+Análise das métricas de rede possibilitaria então apontar intervenções necessárias para otimizar as interações entre os atores das redes. 
+
+Análise de Redes Sociais possibilitam, dentre outros, os seguintes benefícios para as organizações: promoção da integração da rede de pessoas participantes em atividades de negociações da empresa, identificação dos indivíduos que não compartilham seus conhecimentos; a avaliação do desempenho de um grupo de pessoas que trabalham de forma integrada, dentre outros. 
+
+Muitas práticas gerenciais habituais no cotidiano das empresas e comporações podem explorar os conceitos e mecanismos da organização em rede, melhorando a sua efetividade: 
+
+* **Gestão de Talentos**: Encontrar os líderes naturais na organização;
+* **Inovação**: Identificar fronteiras. Garantir que a organização tenha acesso a novas idéias;
+* **Colaboração**: Encontrar lacunas no conhecimento dentro de grupos, ou entre organizações ou geografias. Monitorar ou medir mudanças;
+* **Gestão do conhecimento**: Identificar e manter conhecimentos vitais. Monitorar ou medir mudanças no conhecimento ou na troca de conhecimento;
+* **Mudança Organizacional e Desenvolvimento**: Encontrar líderes de opinião para iniciativas de gerenciamento de mudanças ou durante a integração após fusões e aquisições;
+* **Desempenho Organizacional**: Diagnosticar a coesão entre os membros da equipe e identificar conexões críticas para a melhoria.
+
 
 ## Conceitos Chaves para Análise de Redes
+
+O uso primário da teoria de grafos na análise de rede é buscar identificar "importante" atores. O conceito de prestígio e centralidade busca quantificar ideías teóricas sobre a prominiencia de um ator em uma rede, sumarizando as relações estruturais com os demais atores. Além disso, fornece indicadores no nível de grupo, que permite avaliar a disperação ou desigualdade (de recuros e/ou informações) entre todos os atores da rede.
 
 A *teoria de grafos*, campo da da matemática que estuda as relações entre os objetos de um determinado conjunto, fornece os mecanismos matemáticos que são base para a análise das estruturas da rede. Através do entendimento da estrutura de uma rede é possível ter _insights_ sobre seus padrões, propriedades e indivíduos. 
 
@@ -70,7 +106,7 @@ ggraph(g_layout) +
 ```
 
 
-Há uma série de métricas e propriedades de um grafo que podem fornecer informações relevantes sobre a relação (arestas) entre os indivíduos (vértices) e os próprios indivíduos quando esse representa uma rede social. Iremos explorar algumas propriedades que podem estar ligadas a identificação de capital social, são elas:
+Há uma série de métricas e propriedades[^9] de um grafo que podem fornecer informações relevantes sobre a relação (arestas) entre os indivíduos (vértices) e os próprios indivíduos quando esse representa uma rede social. Iremos explorar algumas propriedades que podem estar ligadas a identificação de capital social, são elas:
 
 * Degree Centrality
 * Betweenness Centrality
@@ -804,3 +840,21 @@ Além disso o carácter _reproduzível da análise_[^5] feita em R permite refinar c
 [^4]: Escolhi analisando a formato das redes e escolhendo três casos distintos, excluindo o primeiro caso que possui muitos vértices para ser plotado.
 
 [^5]: _Reproducible Research_ ou **pesquisa reproduzível** é a ideia de que a análise de dados e, em geral, as alegações científicas, são publicados com seus dados e código de software para que outros possam verificar as descobertas e construir sobre elas.
+
+[^6]: MARTELETO, R. M. Análise de redes sociais - aplicação nos estudos de transferência da informação. Ciência da Informação, Brasília, v.30, n. 1, p. 71-81, jan./abr. 2001. 
+
+[^7]: STORCH, S.. As redes sociais já fazem parte de nosso jeito de pensar. Disponível em: http://www.intranetportal.com.br/e-gov/redessociais - Acesso em: 15 set. 2008. 
+
+[^8]: WASSERMAN, S.; FAUST, K. Social network analysis: methods and applications. Cambridge: Cambridge University Press, 1994
+
+[^9]: NEWMANN, M. Networks. Oxford University Press. April 2010.
+
+[^10]: BURT, R. S. (2001). Structural holes versus network closure as social capital. (Cap. 2, pp. 31-56). New York: Aldine de Gruyter.
+
+[^11]: MARTELETO, Regina Maria  and  SILVA, Antonio Braz de Oliveira e. Redes e capital social: o enfoque da informação para o desenvolvimento local. Ci. Inf. 2004, vol.33, n.3, pp.41-49. 
+
+[^12]: BURT, R.S., 2010. Neighbor Networks: Competitive Advantage Local and Personal, First ed. Oxford University Press, New York. Introdução e Capítulo 1.
+
+[^13]: BURT, R. Structural Holes. University of Chicago Press, Chicago, 1992. 
+
+[^14]: ENGLE, S. Structural Holes and Simmelian Ties: Exploring Social Capital, Task Interdependence and Individual Effectiveness. Phd Thesis, University of North Texas, 1999.
