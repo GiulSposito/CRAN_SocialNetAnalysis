@@ -255,3 +255,21 @@ plot(krack_friendship_only,
      edge.arrow.size=.5,
      vertex.size=tenure_vertex_sizes, 
      main='Krackhardt High-Tech Managers')
+
+###
+# 5. EXPORT THE NETWORK
+###
+
+# The write.graph() function exports a graph object in various
+# formats readable by other programs. There is no explicit
+# option for a UCINET data type, but you can export the graph
+# as a Pajek object by setting the 'format' parameter to 'pajek.'
+# Note that the file will appear in whichever directory is set 
+# as the default in R's preferences, unless you previously 
+# changed this via setwd().
+write.graph(krack_full, file='./Stanford/krack_full.dl', format="pajek")
+
+# For a more general file type (e.g., importable to Excel),
+# use the "edgelist" format. Note that neither of these will
+# write the attributes; only the ties are maintained.
+write.graph(krack_full, file='./Stanford/krack_full.txt', format="edgelist")

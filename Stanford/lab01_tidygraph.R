@@ -21,12 +21,14 @@ nodes <- cbind( data.frame(id = 1:nrow(attributes)),
 edges <- data.frame(
   from = advice_data_frame$V1,
   to   = advice_data_frame$V2,
-  advice_to     = advice_data_frame$V3,
+  advices_to     = advice_data_frame$V3,
   friendship_to = friendship_data_frame$V3,
   reports_to    = reports_to_data_frame$V3
 )
 
 g <- tbl_graph(nodes=nodes, edges = edges, directed = T) %>%
+  activate("edges") %>%
+  filter( advices_to != 0 | friendship_to != 0 | reports_to != 0 ) %>%
   activate("nodes") %>%
   mutate( DEPT = as.factor(DEPT) )
 
@@ -48,3 +50,4 @@ g %>%
   geom_edge_fan(alpha=0.2, arrow = arw) +
   theme_void()
 
+saveRDS(g,"./Stanford/g_net.rds")
