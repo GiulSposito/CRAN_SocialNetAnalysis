@@ -17,7 +17,7 @@
 ### 
 # 1. SET UP SESSION
 ###
-install.packages("NetData")
+# install.packages("NetData")
 
 library(igraph)
 library(NetData)
@@ -225,3 +225,142 @@ node_stats_df <- cbind(deg_full_in,
                        sp_reports_to_out_vec)
 
 write.csv(node_stats_df, './Stanford/krack_node_stats.csv')
+
+
+# Question #1 - What do these statistics tell us about
+# each network and its individuals in general? 
+
+### 
+# 3. NETWORK-LEVEL STATISTICS
+###
+
+# Many initial analyses of networks begin with distances and reach, 
+# and then move towards global summary statistics of the network. 
+#
+# As a reminder, entering a question mark followed by a function 
+# name (e.g., ?graph.density) pulls up the help file for that function.
+# This can be helpful to understand how, exactly, stats are calculated.
+
+# Degree
+mean(deg_full_in)
+sd(deg_full_in)
+mean(deg_full_out)
+sd(deg_full_out)
+
+mean(deg_advice_in)
+sd(deg_advice_in)
+mean(deg_advice_out)
+sd(deg_advice_out)
+
+mean(deg_friendship_in)
+sd(deg_friendship_in)
+mean(deg_friendship_out)
+sd(deg_friendship_out)
+
+mean(deg_reports_to_in)
+sd(deg_reports_to_in)
+mean(deg_reports_to_out)
+sd(deg_reports_to_out)
+
+
+# Shortest paths
+# ***Why do in and out come up with the same results?
+# In and out shortest paths are simply transposes of one another; 
+# thus, when we compute statistics across the whole network they have to be the same.
+
+mean(sp_full_in[which(sp_full_in != Inf)])
+sd(sp_full_in[which(sp_full_in != Inf)])
+mean(sp_full_out[which(sp_full_out != Inf)])
+sd(sp_full_out[which(sp_full_out != Inf)])
+
+mean(sp_advice_in[which(sp_advice_in != Inf)])
+sd(sp_advice_in[which(sp_advice_in != Inf)])
+mean(sp_advice_out[which(sp_advice_out != Inf)])
+sd(sp_advice_out[which(sp_advice_out != Inf)])
+
+mean(sp_friendship_in[which(sp_friendship_in != Inf)])
+sd(sp_friendship_in[which(sp_friendship_in != Inf)])
+mean(sp_friendship_out[which(sp_friendship_out != Inf)])
+sd(sp_friendship_out[which(sp_friendship_out != Inf)])
+
+mean(sp_reports_to_in[which(sp_reports_to_in != Inf)])
+sd(sp_reports_to_in[which(sp_reports_to_in != Inf)])
+mean(sp_reports_to_out[which(sp_reports_to_out != Inf)])
+sd(sp_reports_to_out[which(sp_reports_to_out != Inf)])
+
+# Reachability
+mean(reach_full_in[which(reach_full_in != Inf)])
+sd(reach_full_in[which(reach_full_in != Inf)])
+mean(reach_full_out[which(reach_full_out != Inf)])
+sd(reach_full_out[which(reach_full_out != Inf)])
+
+mean(reach_advice_in[which(reach_advice_in != Inf)])
+sd(reach_advice_in[which(reach_advice_in != Inf)])
+mean(reach_advice_out[which(reach_advice_out != Inf)])
+sd(reach_advice_out[which(reach_advice_out != Inf)])
+
+mean(reach_friendship_in[which(reach_friendship_in != Inf)])
+sd(reach_friendship_in[which(reach_friendship_in != Inf)])
+mean(reach_friendship_out[which(reach_friendship_out != Inf)])
+sd(reach_friendship_out[which(reach_friendship_out != Inf)])
+
+mean(reach_reports_to_in[which(reach_reports_to_in != Inf)])
+sd(reach_reports_to_in[which(reach_reports_to_in != Inf)])
+mean(reach_reports_to_out[which(reach_reports_to_out != Inf)])
+sd(reach_reports_to_out[which(reach_reports_to_out != Inf)])
+
+# Density 
+graph.density(krack_full)
+graph.density(krack_advice)
+graph.density(krack_friendship)
+graph.density(krack_reports_to)
+
+# Reciprocity
+reciprocity(krack_full)
+reciprocity(krack_advice)
+reciprocity(krack_friendship)
+reciprocity(krack_reports_to)
+
+# Transitivity
+transitivity(krack_full)
+transitivity(krack_advice)
+transitivity(krack_friendship)
+transitivity(krack_reports_to)
+
+# Triad census. Here we'll first build a vector of labels for 
+# the different triad types. Then we'll combine this vector
+# with the triad censuses for the different networks, which 
+# we'll export as a CSV.
+
+census_labels = c('003',
+                  '012',
+                  '102',
+                  '021D',
+                  '021U',
+                  '021C',
+                  '111D',
+                  '111U',
+                  '030T',
+                  '030C',
+                  '201',
+                  '120D',
+                  '120U',
+                  '120C',
+                  '210',
+                  '300')
+tc_full <- triad.census(krack_full)
+tc_advice <- triad.census(krack_advice)
+tc_friendship <- triad.census(krack_friendship)
+tc_reports_to <- triad.census(krack_reports_to)
+
+triad_df <- data.frame(census_labels,
+                       tc_full, 
+                       tc_advice, 
+                       tc_friendship,
+                       tc_reports_to)
+triad_df
+
+# To export any of these vectors to a CSV for use in another program, simply
+# use the write.csv() command:
+write.csv(triad_df, './Stanford/krack_triads.csv')
+
