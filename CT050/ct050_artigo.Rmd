@@ -4,6 +4,7 @@ author: "Giuliano Sposito"
 date: "Dezembro de 2017"
 output:
   html_document:
+    keep_md: TRUE
     df_print: paged
   pdf_document: default
 ---
