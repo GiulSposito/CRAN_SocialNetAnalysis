@@ -10,6 +10,35 @@ needs(ggraph)    # visualizacoes de redes
 # dados de publicacao de pacotes
 pdb <- tools::CRAN_package_db()
 
+processAuthors <- function(x){
+
+  if (startsWith(x,"person")){
+    x <- eval(parse(text=x))
+  } else {
+    x <- as.person(x)
+  }
+  
+  format(x,include = c("given", "family" ))
+}
+
+
+
+processAuthors(pdb[pdb$Package=="CorShrink",]$Author)
+
+pdb[pdb$Package=="CorShrink",]$Author
+
+eval(parse(text=pdb[pdb$Package=="CorShrink",]$Author))
+
+parse(text=pdb[pdb$Package=="CorShrink",]$Author)
+parse(text=pdb[3,]$`Authors@R`)
+
+
+pdb[pdb$Package=="CorShrink",]$`Authors@R`
+
+eval(parse(text=pdb[3,]$`Authors@R`))
+
+processAuthpdb$Author[1:10]
+
 # campo de autores dos pacotes
 aut <- pdb$Author %>%
   iconv(to = "ASCII//TRANSLIT") %>%

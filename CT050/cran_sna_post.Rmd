@@ -500,7 +500,7 @@ Vamos selecionar três destes componentes para caracterizá-los: componentes 35,38
 
 ```{r plotcomponents, message=FALSE, warning=F, cache=TRUE}
 
-sel_components <- c(35,38,6)
+sel_components <- c(35,38,265)
 
 # plotando os components
 g %>%
@@ -638,7 +638,7 @@ netMetrics[2][[1]] %>%
 
 #### Componente `r sel_components[3]`
 
-O componente 717 tem uma estrutura mais acoplada, com uma densidade de 0,23, intermediária entre a 30 e 33, é possível observar grupos que trabalham juntos e grande autor central conectando os subgrupos.
+O componente `r sel_components[3]` tem uma estrutura mais acoplada, com uma densidade de `r net_metric2[3]$density`, intermediária entre a `r sel_components[1]` e `r sel_components[2]`, é possível observar grupos que trabalham juntos e grande autor central conectando os subgrupos.
 
 ```{r compSel3plot1, cache=TRUE}
   ggraph(netMetrics[3][[1]], layout="kk") +
@@ -661,21 +661,18 @@ netMetrics[3][[1]] %>%
 ```
 
 
-Podemos observar, de fato, que o autor central [Quanli Wang](https://www.linkedin.com/in/quanli-wang-5645a01b/) trabalhou em 7 pacotes diferente, servindo de pontes para os vários subgrupos presente neste componente. Como ele é o único autor ligando esses subgrupos ele também é o mais bem "referenciado".
-
-
-```{r comp717plot2, cache=TRUE}
-ggraph(netMetrics$`717`, layout="kk") +
+```{r comp717Sel3plot2, cache=TRUE}
+ggraph(netMetrics[3][[1]], layout="kk") +
   geom_edge_fan2(alpha=0.4, aes(edge_colour = ebtwn)) +
   geom_node_point(aes(color=eign, size=eign),alpha=0.9) +
   theme_void() + 
   theme( legend.position = "none" ) + 
-  ggtitle( "Componente 717 - Eigenvector Centrality" )
+  ggtitle( paste0("Componente ",names(netMetrics[3])," - Eigenvector Centrality") )
 ```
 
 
-```{r comp717table2, cache=TRUE}
-netMetrics$`717` %>%
+```{r compSel3table2, cache=TRUE}
+netMetrics[3][[1]] %>%
   activate("nodes") %>%
   as.tibble() %>%
   arrange( desc(eign), desc(degree), desc(btwn), desc(clsn) ) %>%
@@ -782,7 +779,7 @@ h <- h %>%
 
 ggraph(h, layout="lgl") +
   geom_edge_fan(alpha=0.1)+
-  geom_node_point(aes(color=rank),alpha=0.8, size=1) +
+  geom_node_point(aes(color=rank, size=packages),alpha=0.8) +
   theme_void() +
   scale_color_manual(breaks = c("others","top 10","top 20"),
                      values=c("grey","red","orange"))
@@ -828,10 +825,10 @@ h <- h %>%
   mutate ( 
     community = as.factor(
       case_when(
-        clst == 4 ~ "Comunidade 4",
         clst == 3 ~ "Comunidade 3",
-        clst == 63 ~ "Comunidade 63",
-        clst == 9 ~ "Comunidade 9",
+        clst == 1 ~ "Comunidade 1",
+        clst == 42 ~ "Comunidade 42",
+        clst == 23 ~ "Comunidade 23",
         TRUE ~ "Others"
       )
     )
@@ -842,8 +839,8 @@ ggraph(h, layout="lgl") +
   geom_edge_fan(alpha=0.1)+
   geom_node_point(aes(color=community, size=packages),alpha=0.8) +
   theme_void() +
-  scale_color_manual(breaks = c("Comunidade 4","Comunidade 3","Comunidade 63","Comunidade 9" ,"Others"),
-                     values=c("red","skyblue","green","orange","grey"))
+  scale_color_manual(breaks = c("Comunidade 3","Comunidade 1","Comunidade 42","Comunidade 23" ,"Others"),
+                     values=c("red","blue","green","orange","grey"))
 
 ```
 
