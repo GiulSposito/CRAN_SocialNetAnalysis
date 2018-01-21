@@ -27,7 +27,7 @@ NUDGE_Y = 0.3
 
 ```
 
-Este artigo ([RNotebook]()) explora técnicas de *Análise de Redes Sociais* para analisar o comportamento e organização em redes colaboração de autores e desenvolvedores de pacotes de software para R[^1] publicados no repositório CRAN[^2].
+Este artigo ([RNotebook](http://rmarkdown.rstudio.com/r_notebooks.html)) explora técnicas de *Análise de Redes Sociais* ([SNA](https://en.wikipedia.org/wiki/Social_network_analysis)) para analisar o comportamento e organização em redes colaboração de autores e desenvolvedores de pacotes de software para R[^1] publicados no repositório CRAN[^2].
 
 ## Introdução
 
@@ -426,12 +426,12 @@ pdb <- tools::CRAN_package_db()
 # campo de autores dos pacotes
 pbaut <- pdb$Author 
 
-# o campo de autores é uma string separada por virgula e contendo outras informações
-# é necessario limpar a string e separar os nome dos atuores
+# campo de autores dos pacotes
 aut <- pdb$Author %>%
   iconv(to = "ASCII//TRANSLIT") %>%
   map(function(x) format(as.person(x),include = c("given", "family" ))) %>%
-  set_names(pdb$Package)%>% 
+  set_names(pdb$Package)%>%
+  map(function(v) keep(v,~.x!="")) %>%
   magrittr::extract(map_lgl(., function(x) length(x) > 1))
 
 # conta autores por pacote
@@ -638,7 +638,7 @@ netMetrics[2][[1]] %>%
 
 #### Componente `r sel_components[3]`
 
-O componente `r sel_components[3]` tem uma estrutura mais acoplada, com uma densidade de `r net_metric2[3]$density`, intermediária entre a `r sel_components[1]` e `r sel_components[2]`, é possível observar grupos que trabalham juntos e grande autor central conectando os subgrupos.
+O componente `r sel_components[3]` tem uma estrutura mais acoplada, com uma densidade de `r net_metrics[3]$density`, intermediária entre a `r sel_components[1]` e `r sel_components[2]`, é possível observar grupos que trabalham juntos e grande autor central conectando os subgrupos.
 
 ```{r compSel3plot1, cache=TRUE}
   ggraph(netMetrics[3][[1]], layout="kk") +
