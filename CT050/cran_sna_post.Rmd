@@ -418,7 +418,7 @@ O pacote publicado contém uma lista de autores, que contribuíram para construir 
 ### Construindo a Rede
 
 
-```{r crandata, cache=TRUE}
+```{r crandata, warning=FALSE, message=FALSE, cache=TRUE}
 
 # dados de publicacao de pacotes
 pdb <- tools::CRAN_package_db()
@@ -493,14 +493,18 @@ authors.by.components <- g %>%
 knitr::kable(head(authors.by.components,10), caption = "Maiores componentes (top 10)")
 ```
 
-Vamos selecionar três destes componentes para caracterizá-los: componentes 35,38 e 428[^4].
+```{r compSel, cache=TRUE}
+# selecionando os componentes para comparacao
+sel_components <- c(35,38,265)
+```
+
+
+Vamos selecionar três destes componentes para caracterizá-los: `r paste(sel_components, collapse=", ")` [^4].
 
 ### Comparando os três components
 
 
 ```{r plotcomponents, message=FALSE, warning=F, cache=TRUE}
-
-sel_components <- c(35,38,265)
 
 # plotando os components
 g %>%

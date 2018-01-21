@@ -463,117 +463,7 @@ aut <- pdb$Author %>%
   set_names(pdb$Package)%>%
   map(function(v) keep(v,~.x!="")) %>%
   magrittr::extract(map_lgl(., function(x) length(x) > 1))
-```
 
-```
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'boss'.
-
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'boss'.
-```
-
-```
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'frontendanimationcode'.
-```
-
-```
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'http://purl.org/stefan.evert'.
-```
-
-```
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'main'.
-```
-
-```
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'au'.
-
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'au'.
-
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'au'.
-```
-
-```
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'mainctrb'.
-```
-
-```
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'ctrb'.
-
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'ctrb'.
-
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'ctrb'.
-
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'ctrb'.
-
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'ctrb'.
-
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'ctrb'.
-
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'ctrb'.
-
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'ctrb'.
-
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'ctrb'.
-
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'ctrb'.
-
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'ctrb'.
-
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'ctrb'.
-
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'ctrb'.
-
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'ctrb'.
-```
-
-```
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'libmagic'.
-```
-
-```
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'file'.
-```
-
-```
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'mime-db'.
-```
-
-```
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'authorfor'wordcloud2.js''.
-```
-
-```
-## Warning in .canonicalize_person_role(role): Invalid role specification:
-## 'http://www.stefan-evert.de/'.
-```
-
-```r
 # conta autores por pacote
 aut_list <- aut %>%
   unlist() %>%
@@ -649,15 +539,20 @@ component    authors
 50                23
 51                23
 
-Vamos selecionar três destes componentes para caracterizá-los: componentes 35,38 e 428[^4].
+
+```r
+# selecionando os componentes para comparacao
+sel_components <- c(35,38,265)
+```
+
+
+Vamos selecionar três destes componentes para caracterizá-los: 35, 38, 265 [^4].
 
 ### Comparando os três components
 
 
 
 ```r
-sel_components <- c(35,38,265)
-
 # plotando os components
 g %>%
   filter( component %in% sel_components ) %>%
@@ -846,7 +741,7 @@ Michal Juraska         13   341.0   0.29   0.01
 
 #### Componente 265
 
-O componente 265 tem uma estrutura mais acoplada, com uma densidade de 1, 0.0949, 0.2751, intermediária entre a 35 e 38, é possível observar grupos que trabalham juntos e grande autor central conectando os subgrupos.
+O componente 265 tem uma estrutura mais acoplada, com uma densidade de 0.2751, intermediária entre a 35 e 38, é possível observar grupos que trabalham juntos e grande autor central conectando os subgrupos.
 
 
 ```r
